@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathMeet - Kids Math Learning Hub</title>
+  <meta name="description" content="Interactive math learning hub with age-appropriate puzzles, calculator, quizzes, and multiplayer battles.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body { font-family: 'Quicksand', sans-serif; background-color: #f0fdf4; user-select: none; transition: background-color 0.3s, color 0.3s; }
+    .font-fredoka { font-family: 'Fredoka One', cursive; }
+    .block-btn { border-bottom-width: 5px; border-right-width: 3px; transition: transform 0.08s, border-width 0.08s, background-color 0.15s; }
+    .block-btn:active { transform: translateY(3px); border-bottom-width: 2px; border-right-width: 1px; }
+    .step-card { animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-backdrop { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+    body.dark-theme { color: #f8fafc; }
+    body.dark-theme .bg-white { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; }
+    body.dark-theme .text-slate-800, body.dark-theme .text-slate-700, body.dark-theme .text-slate-600 { color: #f1f5f9 !important; }
+    body.dark-theme .bg-slate-50, body.dark-theme .bg-indigo-50, body.dark-theme .bg-amber-50, body.dark-theme .bg-pink-50, body.dark-theme .bg-green-50, body.dark-theme .bg-blue-50 { background-color: #0f172a !important; border-color: #334155 !important; }
+    .bot-diff-active { background-color: #1e293b !important; color: #ffffff !important; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+  <!-- HEADER -->
+  <header class="bg-yellow-400 border-b-4 border-yellow-600 px-4 py-3 shadow-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="switchMainTab('hub')">
+        <span class="text-3xl">🐱</span>
+        <h1 class="text-3xl font-fredoka tracking-wide">
+          <span class="text-red-500">MATH</span><span class="text-indigo-600">MEET</span>
+        </h1>
+      </div>
+
+      <nav class="flex flex-wrap items-center gap-2">
+        <button id="nav-hub" onclick="switchMainTab('hub')" class="block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">🏠 Hub</button>
+        <button id="nav-age" onclick="switchMainTab('age')" class="block-btn bg-white hover:bg-slate-100 border-slate-300 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">🎯 Age Modes</button>
+        <button id="nav-calc" onclick="switchMainTab('calc')" class="block-btn bg-white hover:bg-slate-100 border-slate-300 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">🧮 MathMeet Calc</button>
+        <button id="nav-quiz" onclick="switchMainTab('quiz')" class="block-btn bg-white hover:bg-slate-100 border-slate-300 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">⚡ Quick Quiz</button>
+        <button id="nav-mp" onclick="switchMainTab('mp')" class="block-btn bg-white hover:bg-slate-100 border-slate-300 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">⚔️ Multiplayer</button>
+        <button id="nav-shop" onclick="switchMainTab('shop')" class="block-btn bg-white hover:bg-slate-100 border-slate-300 font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1">🛍️ Shop</button>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <span id="header-rank-badge" class="bg-indigo-600 text-white font-bold text-xs px-2.5 py-1 rounded-full border-2 border-indigo-800 shadow-sm">Novice</span>
+        <div class="bg-amber-100 border-2 border-amber-400 text-amber-900 font-bold px-3 py-1 rounded-xl flex items-center gap-1 text-sm">⭐ <span id="header-stars">50</span></div>
+        <div class="bg-orange-100 border-2 border-orange-400 text-orange-900 font-bold px-2.5 py-1 rounded-xl text-sm flex items-center gap-1" title="Daily Streak">🔥 <span id="header-streak">1</span></div>
+        <div class="bg-violet-100 border-2 border-violet-400 text-violet-900 font-bold px-2.5 py-1 rounded-xl text-sm flex items-center gap-1" title="XP">✨ <span id="header-xp">0</span></div>
+        <div class="bg-teal-100 border-2 border-teal-400 text-teal-900 font-bold px-2.5 py-1 rounded-xl text-sm flex items-center gap-1" title="Gems">💎 <span id="header-gems">0</span></div>
+        <button onclick="switchMainTab('shop')" class="block-btn bg-amber-500 text-white border-amber-700 p-2 rounded-xl text-sm font-bold" title="Shop">🛒</button>
+        <button onclick="openModal('rewards-modal')" class="block-btn bg-emerald-500 text-white border-emerald-700 p-2 rounded-xl text-sm font-bold" title="Achievements">🏆</button>
+        <button onclick="openModal('settings-modal')" class="block-btn bg-slate-600 text-white border-slate-800 p-2 rounded-xl text-sm font-bold" title="Settings">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW -->
+  <main class="max-w-6xl w-full mx-auto p-4 flex-grow">
+
+    <!-- VIEW: HUB -->
+    <section id="view-hub" class="space-y-6">
+      <div class="bg-white rounded-2xl border-4 border-indigo-200 p-6 shadow-md flex flex-col md:flex-row items-center gap-6">
+        <div class="relative flex flex-col items-center">
+          <div id="mascot-svg-container" class="w-32 h-32 relative flex items-center justify-center"></div>
+          <button onclick="openModal('mascot-modal')" class="mt-2 text-xs font-bold text-indigo-600 hover:underline">🎨 Change Outfit / Skin</button>
+          <button onclick="switchMainTab('shop')" class="mt-1 text-xs font-bold text-amber-600 hover:underline">🛍️ Open Shop</button>
+        </div>
+
+        <div class="flex-grow space-y-3 text-center md:text-left w-full">
+          <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 relative">
+            <p id="mascot-speech" class="font-bold text-slate-700 text-lg">Welcome to MathMeet! I am Pixel. What would you like to learn today?</p>
+            <div class="mt-2 flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-slate-600">
+              <button onclick="speakMascotSpeech()" class="bg-indigo-600 text-white px-2 py-1 rounded-lg">🔊 Speak</button>
+              <span>Speed:</span>
+              <button onclick="changeTTSRate(-0.1)" class="bg-slate-200 px-2 py-0.5 rounded">➖</button>
+              <span id="tts-rate-label">1.0x</span>
+              <button onclick="changeTTSRate(0.1)" class="bg-slate-200 px-2 py-0.5 rounded">➕</button>
+            </div>
+          </div>
+
+          <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="bg-amber-400 text-amber-900 font-bold text-xs px-2 py-0.5 rounded-full uppercase">Daily Challenge</span>
+              <p class="font-bold text-sm text-slate-800 mt-1" id="daily-card-text">Solve 3 math puzzles (+5 Bonus Stars!)</p>
+            </div>
+            <button id="daily-claim-btn" onclick="claimDailyChallenge()" class="block-btn bg-amber-500 text-white border-amber-700 font-bold px-4 py-1.5 rounded-xl text-sm">Claim +5 ⭐</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-fredoka text-slate-800 mb-3">Choose Your Age Level 🚀</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div onclick="selectAgeGroup('35')" class="block-btn bg-pink-100 border-pink-400 p-4 rounded-2xl cursor-pointer hover:bg-pink-200 transition">
+            <span class="text-4xl">🐱</span>
+            <h3 class="font-fredoka text-pink-800 text-xl mt-2">3-5 Years</h3>
+            <p class="text-xs font-bold text-pink-700">Count & Balloons</p>
+          </div>
+          <div onclick="selectAgeGroup('67')" class="block-btn bg-blue-100 border-blue-400 p-4 rounded-2xl cursor-pointer hover:bg-blue-200 transition">
+            <span class="text-4xl">🚀</span>
+            <h3 class="font-fredoka text-blue-800 text-xl mt-2">6-7 Years</h3>
+            <p class="text-xs font-bold text-blue-700">Clock, Compare & Abacus</p>
+          </div>
+          <div onclick="selectAgeGroup('89')" class="block-btn bg-emerald-100 border-emerald-400 p-4 rounded-2xl cursor-pointer hover:bg-emerald-200 transition">
+            <span class="text-4xl">🧙‍♂️</span>
+            <h3 class="font-fredoka text-emerald-800 text-xl mt-2">8-9 Years</h3>
+            <p class="text-xs font-bold text-emerald-700">Wizard Multi & Order</p>
+          </div>
+          <div onclick="selectAgeGroup('1012')" class="block-btn bg-purple-100 border-purple-400 p-4 rounded-2xl cursor-pointer hover:bg-purple-200 transition">
+            <span class="text-4xl">⚡</span>
+            <h3 class="font-fredoka text-purple-800 text-xl mt-2">10-12 Years</h3>
+            <p class="text-xs font-bold text-purple-700">Sets, Logic & Master</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-gradient-to-r from-red-500 to-amber-500 text-white rounded-2xl p-5 shadow-md flex items-center justify-between">
+          <div>
+            <h3 class="font-fredoka text-2xl">🔥 Random Boss Round</h3>
+            <p class="text-xs opacity-90">Mixed rapid-fire puzzles from your level!</p>
+          </div>
+          <button onclick="startBossRound()" class="block-btn bg-white text-red-600 border-red-200 font-bold px-4 py-2 rounded-xl">Start Boss!</button>
+        </div>
+        <div class="bg-slate-800 text-white rounded-2xl p-5 shadow-md flex items-center justify-between">
+          <div>
+            <h3 class="font-fredoka text-2xl">👨‍👩‍👧 Parent Dashboard</h3>
+            <p class="text-xs opacity-80">View progress summary & accuracy metrics.</p>
+          </div>
+          <button onclick="openModal('parent-summary-modal')" class="block-btn bg-indigo-500 border-indigo-700 font-bold px-4 py-2 rounded-xl">View Summary</button>
+        </div>
+      </div>
+
+      <!-- REDEEM CODE CARD -->
+      <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-2xl p-5 shadow-md space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 class="font-fredoka text-2xl">🎁 Redeem a Code</h3>
+            <p class="text-xs opacity-90">Try: <span class="font-mono bg-white/20 px-1 rounded">STEALTH2026</span>, <span class="font-mono bg-white/20 px-1 rounded">MATHKING</span>, <span class="font-mono bg-white/20 px-1 rounded">GEMBOOST</span>, <span class="font-mono bg-white/20 px-1 rounded">RAFTSTUDIOS</span></p>
+          </div>
+          <div id="redeem-xp-counter" class="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-xl whitespace-nowrap">✨ 0 XP</div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input id="redeemInput" type="text" placeholder="Enter code..." onkeydown="if(event.key==='Enter')handleRedeemCode()" class="flex-grow px-3 py-2 rounded-xl text-slate-800 font-bold text-sm outline-none border-2 border-transparent focus:border-white">
+          <button id="redeemBtn" onclick="handleRedeemCode()" class="block-btn bg-white text-fuchsia-700 border-fuchsia-200 font-bold px-4 py-2 rounded-xl text-sm">Redeem Code</button>
+        </div>
+        <div id="redeemStatus" class="min-h-[1.5rem]"></div>
+        <div id="redeem-unlocks-list" class="flex flex-wrap gap-1.5 text-xs font-bold"></div>
+      </div>
+    </section>
+
+    <!-- VIEW: AGE PUZZLE GRID -->
+    <section id="view-age" class="hidden space-y-4">
+      <div class="flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center gap-3">
+          <button onclick="switchMainTab('hub')" class="block-btn bg-slate-200 border-slate-400 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs">⬅️ Hub</button>
+          <h2 id="selected-age-title" class="text-2xl font-fredoka text-slate-800">Age Puzzles</h2>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="toggleFavoritesFilter()" id="fav-filter-btn" class="block-btn bg-yellow-100 text-yellow-800 border-yellow-300 font-bold px-3 py-1.5 rounded-xl text-xs">⭐ Favorites Only: OFF</button>
+          <div class="bg-white border-2 border-slate-300 rounded-xl px-3 py-1 text-xs font-bold flex items-center gap-2">
+            <span>Mode:</span>
+            <select id="game-mode-select" onchange="changeGameMode(this.value)" class="bg-transparent font-bold text-indigo-600 outline-none">
+              <option value="practice">Practice (Standard)</option>
+              <option value="challenge">Challenge ⚡ (2x Stars)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="puzzles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- VIEW: WIZARD STEP FLOW -->
+    <section id="view-wizard" class="hidden space-y-4">
+      <div class="flex justify-between items-center bg-white p-4 rounded-2xl border-2 border-slate-200">
+        <button onclick="resetActiveSession(); switchMainTab('age')" class="block-btn bg-slate-200 border-slate-400 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs">⬅️ Back to Puzzles</button>
+        <span id="wizard-puzzle-title" class="font-fredoka text-lg text-indigo-600">Puzzle Activity</span>
+        <span id="wizard-mode-badge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded-full">Practice Mode</span>
+      </div>
+      <div id="wizard-card" class="bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md min-h-[320px] flex flex-col justify-between step-card"></div>
+    </section>
+
+    <!-- VIEW: CALCULATOR -->
+    <section id="view-calc" class="hidden max-w-md mx-auto space-y-4">
+      <div class="bg-slate-900 border-4 border-slate-700 rounded-3xl p-6 shadow-xl text-white">
+        <h2 class="text-xl font-fredoka text-yellow-400 mb-2 text-center">MathMeet Calc 🧮</h2>
+        <div id="calc-display" class="bg-slate-800 text-right text-3xl font-mono p-4 rounded-xl border-2 border-slate-600 mb-4 h-16 flex items-center justify-end overflow-x-auto text-emerald-400">0</div>
+        <div class="grid grid-cols-4 gap-2 font-bold">
+          <button onclick="calcInput('C')" class="block-btn bg-red-500 border-red-700 p-3 rounded-xl col-span-2 text-lg">C</button>
+          <button onclick="calcInput('(')" class="block-btn bg-slate-700 border-slate-900 p-3 rounded-xl">(</button>
+          <button onclick="calcInput(')')" class="block-btn bg-slate-700 border-slate-900 p-3 rounded-xl">)</button>
+          <button onclick="calcInput('7')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">7</button>
+          <button onclick="calcInput('8')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">8</button>
+          <button onclick="calcInput('9')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">9</button>
+          <button onclick="calcInput('/')" class="block-btn bg-amber-500 border-amber-700 p-3 rounded-xl">÷</button>
+          <button onclick="calcInput('4')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">4</button>
+          <button onclick="calcInput('5')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">5</button>
+          <button onclick="calcInput('6')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">6</button>
+          <button onclick="calcInput('*')" class="block-btn bg-amber-500 border-amber-700 p-3 rounded-xl">×</button>
+          <button onclick="calcInput('1')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">1</button>
+          <button onclick="calcInput('2')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">2</button>
+          <button onclick="calcInput('3')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">3</button>
+          <button onclick="calcInput('-')" class="block-btn bg-amber-500 border-amber-700 p-3 rounded-xl">-</button>
+          <button onclick="calcInput('0')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">0</button>
+          <button onclick="calcInput('.')" class="block-btn bg-slate-800 border-slate-950 p-3 rounded-xl">.</button>
+          <button onclick="calcInput('=')" class="block-btn bg-emerald-500 border-emerald-700 p-3 rounded-xl col-span-2 text-xl">=</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: QUICK QUIZ & TESTS -->
+    <section id="view-quiz" class="hidden space-y-6">
+      <div class="flex justify-center gap-4 bg-white p-2 rounded-2xl border-2 border-slate-200">
+        <button onclick="switchQuizSubTab('infinite')" id="quiz-tab-infinite" class="block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm">⚡ Quick Operation Quiz</button>
+        <button onclick="switchQuizSubTab('parent')" id="quiz-tab-parent" class="block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm">📝 Parent & Exam Center</button>
+      </div>
+
+      <div id="quiz-sub-infinite" class="max-w-xl mx-auto bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md space-y-4">
+        <h2 class="text-xl font-fredoka text-indigo-700">Quick Practice Quiz</h2>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="setQuizOp('+')" class="quiz-op-btn block-btn bg-indigo-100 border-indigo-300 font-bold px-3 py-1 rounded-xl text-sm">Addition (+)</button>
+          <button onclick="setQuizOp('-')" class="quiz-op-btn block-btn bg-indigo-100 border-indigo-300 font-bold px-3 py-1 rounded-xl text-sm">Subtraction (-)</button>
+          <button onclick="setQuizOp('*')" class="quiz-op-btn block-btn bg-indigo-100 border-indigo-300 font-bold px-3 py-1 rounded-xl text-sm">Multiplication (×)</button>
+          <button onclick="setQuizOp('/')" class="quiz-op-btn block-btn bg-indigo-100 border-indigo-300 font-bold px-3 py-1 rounded-xl text-sm">Division (÷)</button>
+          <button onclick="setQuizOp('mixed')" class="quiz-op-btn block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-3 py-1 rounded-xl text-sm">Mixed</button>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <span>Difficulty:</span>
+          <button onclick="setQuizDiff('easy')" class="quiz-diff-btn text-emerald-600 border border-emerald-300 px-2 py-1 rounded-lg">Easy</button>
+          <button onclick="setQuizDiff('medium')" class="quiz-diff-btn text-amber-600 border border-amber-300 px-2 py-1 rounded-lg">Medium</button>
+          <button onclick="setQuizDiff('hard')" class="quiz-diff-btn text-red-600 border border-red-300 px-2 py-1 rounded-lg">Hard</button>
+        </div>
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6 text-center space-y-4">
+          <div id="quiz-question-text" class="text-4xl font-fredoka text-slate-800">12 + 5 = ?</div>
+          <div class="flex justify-center items-center gap-2">
+            <input type="number" id="quiz-user-input" onkeydown="if(event.key==='Enter')submitQuizAnswer()" class="text-2xl font-bold w-32 p-2 border-2 border-indigo-400 rounded-xl text-center" placeholder="Ans">
+            <button onclick="submitQuizAnswer()" class="block-btn bg-emerald-500 text-white border-emerald-700 font-bold px-5 py-2.5 rounded-xl text-lg">Check</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="quiz-sub-parent" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md space-y-4">
+            <h3 class="text-xl font-fredoka text-indigo-700">🏆 Prebuilt Final Exams</h3>
+            <div class="space-y-3">
+              <div class="border-2 border-slate-200 p-3 rounded-xl flex justify-between items-center">
+                <div><h4 class="font-bold text-sm">Junior Math Assessment</h4><p class="text-xs text-slate-500">10 Questions (+ and -)</p></div>
+                <button onclick="startPrebuiltTest('junior')" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-3 py-1.5 rounded-xl text-xs">Start</button>
+              </div>
+              <div class="border-2 border-slate-200 p-3 rounded-xl flex justify-between items-center">
+                <div><h4 class="font-bold text-sm">Senior Master Assessment</h4><p class="text-xs text-slate-500">15 Questions (+, -, ×, ÷)</p></div>
+                <button onclick="startPrebuiltTest('senior')" class="block-btn bg-purple-500 text-white border-purple-700 font-bold px-3 py-1.5 rounded-xl text-xs">Start</button>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md space-y-4">
+            <h3 class="text-xl font-fredoka text-indigo-700">🛠️ Custom Parent Test Builder</h3>
+            <form id="custom-test-form" onsubmit="handleCustomTestSubmit(event)" class="space-y-3 text-xs font-bold text-slate-700">
+              <div>
+                <label class="block mb-1">Operations:</label>
+                <div class="flex gap-3">
+                  <label><input type="checkbox" name="ops" value="+" checked> +</label>
+                  <label><input type="checkbox" name="ops" value="-" checked> -</label>
+                  <label><input type="checkbox" name="ops" value="*" checked> ×</label>
+                  <label><input type="checkbox" name="ops" value="/"> ÷</label>
+                </div>
+              </div>
+              <div>
+                <label class="block mb-1">Questions:</label>
+                <select id="custom-q-count" class="w-full border-2 border-slate-300 rounded-lg p-1.5">
+                  <option value="5">5 Questions</option>
+                  <option value="10" selected>10 Questions</option>
+                  <option value="15">15 Questions</option>
+                  <option value="20">20 Questions</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full block-btn bg-emerald-500 text-white border-emerald-700 font-bold py-2 rounded-xl text-sm mt-2">Generate & Launch Test</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE EXAM RUNNER & REPORT -->
+      <div id="quiz-sub-exam" class="hidden max-w-2xl mx-auto space-y-4"></div>
+    </section>
+
+    <!-- VIEW: MULTIPLAYER -->
+    <section id="view-mp" class="hidden space-y-6">
+      <div class="flex justify-center gap-4 bg-white p-2 rounded-2xl border-2 border-slate-200">
+        <button onclick="switchMpSubTab('bot')" id="mp-tab-bot" class="block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm">🤖 Play vs Bot</button>
+        <button onclick="switchMpSubTab('online')" id="mp-tab-online" class="block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm">🌐 Online P2P</button>
+      </div>
+
+      <!-- BOT SUBVIEW (Unique ID: bot-scoreboard) -->
+      <div id="mp-sub-bot" class="max-w-xl mx-auto bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md space-y-4">
+        <h2 class="text-xl font-fredoka text-indigo-700">🤖 Play vs Bot (Offline)</h2>
+        <div class="flex items-center gap-2 text-xs font-bold flex-wrap">
+          <span>Bot Difficulty:</span>
+          <button onclick="setBotDifficulty('easy')" id="bot-diff-easy" class="bot-diff-btn block-btn bg-emerald-100 text-emerald-700 border-emerald-300 px-3 py-1.5 rounded-lg bot-diff-active">Easy</button>
+          <button onclick="setBotDifficulty('medium')" id="bot-diff-medium" class="bot-diff-btn block-btn bg-amber-100 text-amber-700 border-amber-300 px-3 py-1.5 rounded-lg">Medium</button>
+          <button onclick="setBotDifficulty('hard')" id="bot-diff-hard" class="bot-diff-btn block-btn bg-red-100 text-red-700 border-red-300 px-3 py-1.5 rounded-lg">Hard</button>
+        </div>
+        <div id="bot-scoreboard" class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 text-center font-bold text-sm text-indigo-700">
+          You: 0 &nbsp;|&nbsp; Bot: 0
+        </div>
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6 text-center space-y-4">
+          <div id="bot-question-text" class="text-4xl font-fredoka text-slate-800">Press Start to Begin!</div>
+          <div class="flex justify-center items-center gap-2">
+            <input type="number" id="bot-user-input" onkeydown="if(event.key==='Enter')submitBotAnswer()" class="text-2xl font-bold w-32 p-2 border-2 border-indigo-400 rounded-xl text-center" placeholder="Ans">
+            <button onclick="submitBotAnswer()" class="block-btn bg-emerald-500 text-white border-emerald-700 font-bold px-5 py-2.5 rounded-xl text-lg">Check</button>
+          </div>
+        </div>
+        <div class="flex justify-center gap-2">
+          <button onclick="startBotMatch()" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-4 py-2 rounded-xl text-sm">▶️ Start Match</button>
+          <button onclick="stopBotMatch()" class="block-btn bg-red-500 text-white border-red-700 font-bold px-4 py-2 rounded-xl text-sm">⏹️ Stop</button>
+        </div>
+        <p id="bot-status-text" class="text-center text-xs font-bold text-slate-500">Choose difficulty and click Start!</p>
+      </div>
+
+      <!-- ONLINE SUBVIEW (Unique ID: online-scoreboard) -->
+      <div id="mp-sub-online" class="hidden max-w-xl mx-auto bg-white border-4 border-indigo-200 rounded-2xl p-6 shadow-md space-y-4">
+        <h2 class="text-xl font-fredoka text-indigo-700">🌐 Online Multiplayer (P2P)</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="border-2 border-slate-200 rounded-xl p-3 space-y-2 text-center">
+            <h4 class="font-bold text-sm text-slate-700">Host Room</h4>
+            <button onclick="hostArena()" class="w-full block-btn bg-indigo-500 text-white border-indigo-700 font-bold py-2 rounded-xl text-sm">Create Room</button>
+            <p class="text-xs font-bold text-slate-500">Room: <span id="mp-arena-id" class="text-indigo-700">—</span></p>
+          </div>
+          <div class="border-2 border-slate-200 rounded-xl p-3 space-y-2 text-center">
+            <h4 class="font-bold text-sm text-slate-700">Join Room</h4>
+            <input id="mp-target-id" type="text" placeholder="Enter Room Code" class="w-full text-center px-2 py-1.5 border-2 border-slate-300 rounded-lg font-bold text-sm">
+            <button onclick="connectToOpponent(document.getElementById('mp-target-id').value)" class="w-full block-btn bg-amber-500 text-white border-amber-700 font-bold py-2 rounded-xl text-sm">Join Room</button>
+          </div>
+        </div>
+        <p id="mp-status" class="text-center text-xs font-bold text-slate-600 min-h-[1rem]"></p>
+        <div id="online-scoreboard" class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 text-center font-bold text-sm text-indigo-700">
+          You: 0 pts vs Opponent: 0 pts
+        </div>
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6 text-center space-y-4">
+          <div id="mp-question-text" class="text-4xl font-fredoka text-slate-800">Waiting for match to start...</div>
+          <div class="flex justify-center items-center gap-2">
+            <input type="number" id="mp-answer-input" onkeydown="if(event.key==='Enter')submitMpAnswer()" class="text-2xl font-bold w-32 p-2 border-2 border-indigo-400 rounded-xl text-center" placeholder="Ans">
+            <button onclick="submitMpAnswer()" class="block-btn bg-emerald-500 text-white border-emerald-700 font-bold px-5 py-2.5 rounded-xl text-lg">Submit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: SHOP -->
+    <section id="view-shop" class="hidden space-y-6">
+      <div class="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-3xl p-6 shadow-lg border-4 border-yellow-600 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-900">
+        <div class="flex items-center gap-4">
+          <div class="bg-white/80 p-3 rounded-2xl border-2 border-yellow-600 shadow-inner"><span class="text-4xl">🛍️</span></div>
+          <div>
+            <h2 class="text-3xl font-fredoka text-amber-950">MathMeet Shop</h2>
+            <p class="text-xs font-bold text-amber-900">Unlock unique mascots, skins, accessories, app themes, and audio FX with your stars!</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border-4 border-amber-600 px-6 py-3 shadow-md flex items-center gap-3">
+          <span class="text-3xl">⭐</span>
+          <div>
+            <p class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Your Balance</p>
+            <p id="shop-star-balance" class="text-3xl font-fredoka text-amber-600">50 Stars</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-2 bg-white p-3 rounded-2xl border-2 border-slate-200 shadow-sm">
+        <button onclick="switchMarketplaceTab('all')" data-cat="all" class="mp-tab-btn block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm">All</button>
+        <button onclick="switchMarketplaceTab('mascot')" data-cat="mascot" class="mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm">🐾 Mascots</button>
+        <button onclick="switchMarketplaceTab('skin')" data-cat="skin" class="mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm">🎨 Skins</button>
+        <button onclick="switchMarketplaceTab('accessory')" data-cat="accessory" class="mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm">👑 Accessories</button>
+        <button onclick="switchMarketplaceTab('theme')" data-cat="theme" class="mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm">🌈 Themes</button>
+        <button onclick="switchMarketplaceTab('fx')" data-cat="fx" class="mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm">🎉 Audio/FX</button>
+      </div>
+
+      <div id="marketplace-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- MODALS -->
+  <div id="rewards-modal" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-yellow-400 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <button onclick="closeModal('rewards-modal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+      <div class="text-center">
+        <h2 id="modal-rank-title" class="text-2xl font-fredoka text-yellow-600">Novice</h2>
+        <p class="text-xs text-slate-500 font-bold">Progression & Achievements</p>
+      </div>
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-bold text-slate-600">
+          <span>Rank Progress</span>
+          <span id="rank-progress-text">50 / 60 Stars</span>
+        </div>
+        <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden border">
+          <div id="rank-progress-bar" class="bg-yellow-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+      <div>
+        <h3 class="font-bold text-xs uppercase text-slate-500 mb-2">Age Badges</h3>
+        <div class="grid grid-cols-4 gap-2 text-center" id="modal-badges-grid"></div>
+      </div>
+      <div class="bg-violet-50 border rounded-xl p-3 text-xs font-bold text-slate-600 space-y-1">
+        <p>✨ XP: <span id="modal-xp-total" class="text-violet-600">0</span></p>
+        <p>💎 Gems: <span id="modal-gems-total" class="text-teal-600">0</span></p>
+        <div id="modal-unlocks-list" class="flex flex-wrap gap-1.5 mt-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mascot-modal" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-indigo-400 rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 max-h-[85vh] overflow-y-auto">
+      <button onclick="closeModal('mascot-modal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+      <h2 class="text-2xl font-fredoka text-indigo-700 text-center">Pixel's Closet 🐱</h2>
+      <div>
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Select Skin</h3>
+        <div class="grid grid-cols-3 gap-2" id="skins-grid"></div>
+      </div>
+      <div>
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Select Accessory</h3>
+        <div class="grid grid-cols-3 gap-2" id="accessories-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-slate-400 rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4">
+      <button onclick="closeModal('settings-modal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+      <h2 class="text-2xl font-fredoka text-slate-800 text-center">Settings & Themes ⚙️</h2>
+      <div>
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">App Color Themes</h3>
+        <div class="grid grid-cols-2 gap-2" id="themes-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="parent-summary-modal" class="hidden fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-4 border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <button onclick="closeModal('parent-summary-modal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 font-bold text-xl">✕</button>
+      <h2 class="text-2xl font-fredoka text-slate-800 text-center">Parent Summary Report 📊</h2>
+      <div class="grid grid-cols-2 gap-3 text-center">
+        <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl">
+          <p class="text-xs text-slate-500 font-bold">Total Stars</p>
+          <p id="parent-total-stars" class="text-2xl font-fredoka text-indigo-600">50</p>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+          <p class="text-xs text-slate-500 font-bold">Puzzles Done</p>
+          <p id="parent-completed-count" class="text-2xl font-fredoka text-emerald-600">0</p>
+        </div>
+      </div>
+      <div class="bg-slate-50 border p-3 rounded-xl space-y-1 text-xs font-bold text-slate-700">
+        <p>Current Rank: <span id="parent-rank-text" class="text-indigo-600">Novice</span></p>
+        <p>Daily Streak: <span id="parent-streak-text" class="text-orange-600">1 Day</span></p>
+        <p>Accuracy: <span id="parent-accuracy-text" class="text-emerald-600">100%</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-popup" class="hidden fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border-2 border-yellow-400 flex items-center gap-3 z-50">
+    <span id="toast-icon" class="text-2xl">🏆</span>
+    <div>
+      <h4 id="toast-title" class="font-fredoka text-sm text-yellow-400">Milestone!</h4>
+      <p id="toast-msg" class="text-xs font-bold">Great job!</p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-300 py-6 px-4 border-t-4 border-yellow-400 mt-12">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left text-xs font-bold">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🐱</span>
+        <div><h3 class="font-fredoka text-lg text-yellow-400">MATHMEET</h3><p class="text-slate-400">Kids Math Learning Hub</p></div>
+      </div>
+      <div class="space-y-1">
+        <div class="text-slate-400">Created by Mohammed Taha Ahmed and Mohammed Abdullah Jan</div>
+        <div class="text-slate-400">Contact us: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="93fee6e1f8fbf2fda1a2a1a5d3f4fef2faffbdf0fcfe">[email&#160;protected]</a> and <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d5b4ede2ede1e4ece4ed95b2b8b4bcb9fbb6bab8">[email&#160;protected]</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CORE SCRIPT -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Safe LocalStorage Helper
+    function safeStorageGet(key, fallback) {
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? JSON.parse(val) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function safeStorageSet(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+
+    // STATE INITIALIZATION
+    const state = {
+      starsEarned: parseInt(localStorage.getItem('mathbuddy_stars') || '50', 10),
+      theme: localStorage.getItem('mathbuddy_theme') || 'default',
+      pagemode: localStorage.getItem('mathbuddy_pagemode') || 'hub',
+      streak: parseInt(localStorage.getItem('mathbuddy_streak') || '1', 10),
+      lastLogin: localStorage.getItem('mathbuddy_last_login') || new Date().toDateString(),
+      selectedSkin: localStorage.getItem('mathmeet_skin') || 'classic',
+      selectedAccessory: localStorage.getItem('mathmeet_accessory') || 'none',
+      activeAgeGroup: '35',
+      gameMode: 'practice',
+      favorites: safeStorageGet('mathmeet_favorites', []),
+      completedPuzzles: parseInt(localStorage.getItem('mathmeet_completed_count') || '0', 10),
+      correctAttempts: parseInt(localStorage.getItem('mathmeet_correct_attempts') || '0', 10),
+      totalAttempts: parseInt(localStorage.getItem('mathmeet_attempts') || '0', 10),
+      playedAgeGroups: safeStorageGet('mathmeet_played_groups', []),
+      dailyClaimed: localStorage.getItem('mathmeet_daily_claimed') === new Date().toDateString(),
+      inventory: safeStorageGet('mathmeet_inventory', ['mascot_pixel', 'classic', 'none', 'default', 'sky']),
+      activeMascot: localStorage.getItem('mathmeet_active_mascot') || 'mascot_pixel',
+      activeSkin: localStorage.getItem('mathmeet_skin') || 'classic',
+      activeAccessory: localStorage.getItem('mathmeet_accessory') || 'none',
+      activeTheme: localStorage.getItem('mathbuddy_theme') || 'default',
+      activeFX: localStorage.getItem('mathmeet_active_fx') || null,
+      quizOp: 'mixed',
+      quizDiff: 'easy',
+      currentQuizAnswer: null,
+      activePuzzle: null,
+      wizardStep: 1,
+      ttsRate: 1.0,
+      xp: 0,
+      gems: 0,
+      streakMultiplier: 1.0,
+      unlockedTitles: [],
+      unlockedAvatars: [],
+      redeemedCodes: []
+    };
+
+    // Load Redeem State safely
+    (function loadRedeemData() {
+      const saved = safeStorageGet('mathmeet_state_v3', null);
+      if (saved && typeof saved === 'object') {
+        if (typeof saved.xp === 'number') state.xp = saved.xp;
+        if (typeof saved.gems === 'number') state.gems = saved.gems;
+        if (typeof saved.streakMultiplier === 'number') state.streakMultiplier = saved.streakMultiplier;
+        if (Array.isArray(saved.unlockedTitles)) state.unlockedTitles = saved.unlockedTitles;
+        if (Array.isArray(saved.unlockedAvatars)) state.unlockedAvatars = saved.unlockedAvatars;
+        if (Array.isArray(saved.redeemedCodes)) state.redeemedCodes = saved.redeemedCodes;
+      }
+    })();
+
+    function saveState() {
+      try {
+        localStorage.setItem('mathbuddy_stars', String(state.starsEarned));
+        localStorage.setItem('mathbuddy_theme', state.theme);
+        localStorage.setItem('mathbuddy_pagemode', state.pagemode);
+        localStorage.setItem('mathbuddy_streak', String(state.streak));
+        localStorage.setItem('mathbuddy_last_login', state.lastLogin);
+        localStorage.setItem('mathmeet_skin', state.selectedSkin);
+        localStorage.setItem('mathmeet_accessory', state.selectedAccessory);
+        localStorage.setItem('mathmeet_completed_count', String(state.completedPuzzles));
+        localStorage.setItem('mathmeet_attempts', String(state.totalAttempts));
+        localStorage.setItem('mathmeet_correct_attempts', String(state.correctAttempts));
+        localStorage.setItem('mathmeet_active_mascot', state.activeMascot);
+        localStorage.setItem('mathmeet_active_fx', state.activeFX || '');
+        safeStorageSet('mathmeet_favorites', state.favorites);
+        safeStorageSet('mathmeet_played_groups', state.playedAgeGroups);
+        safeStorageSet('mathmeet_inventory', state.inventory);
+        safeStorageSet('mathmeet_state_v3', {
+          xp: state.xp,
+          gems: state.gems,
+          streakMultiplier: state.streakMultiplier,
+          unlockedTitles: state.unlockedTitles,
+          unlockedAvatars: state.unlockedAvatars,
+          redeemedCodes: state.redeemedCodes
+        });
+      } catch(e) {}
+    }
+
+    // STATE RESET & EDGE CASE HANDLING
+    function resetActiveSession() {
+      if (typeof BOT !== 'undefined' && BOT.timerHandle) {
+        clearTimeout(BOT.timerHandle);
+        BOT.timerHandle = null;
+        BOT.playing = false;
+      }
+      if (typeof EXAM !== 'undefined') {
+        EXAM.active = false;
+        const examView = document.getElementById('quiz-sub-exam');
+        if (examView) examView.classList.add('hidden');
+      }
+      state.activePuzzle = null;
+      state.wizardStep = 1;
+      const calcDisp = document.getElementById('calc-display');
+      if (calcDisp && calcExpr) { calcExpr = ''; calcDisp.innerText = '0'; }
+    }
+
+    // RANKS
+    const RANKS = [
+      { name: 'Novice', minStars: 0 },
+      { name: 'Scout', minStars: 25 },
+      { name: 'Solver', minStars: 60 },
+      { name: 'Expert', minStars: 120 },
+      { name: 'Scholar', minStars: 220 },
+      { name: 'Genius', minStars: 350 },
+      { name: '🌟 Math Master', minStars: 500 }
+    ];
+
+    function getRankFromStars(stars) {
+      let r = RANKS[0];
+      for (let i = 0; i < RANKS.length; i++) {
+        if (stars >= RANKS[i].minStars) r = RANKS[i];
+      }
+      return r;
+    }
+
+    function updateHeaderAndRanks() {
+      const hStars = document.getElementById('header-stars');
+      if (hStars) hStars.innerText = state.starsEarned;
+      const hStreak = document.getElementById('header-streak');
+      if (hStreak) hStreak.innerText = state.streak;
+
+      const currentRank = getRankFromStars(state.starsEarned);
+      const hBadge = document.getElementById('header-rank-badge');
+      if (hBadge) hBadge.innerText = currentRank.name;
+      const mTitle = document.getElementById('modal-rank-title');
+      if (mTitle) mTitle.innerText = currentRank.name;
+
+      const nextRank = RANKS.find(r => r.minStars > state.starsEarned);
+      const bar = document.getElementById('rank-progress-bar');
+      const text = document.getElementById('rank-progress-text');
+      if (bar && text) {
+        if (nextRank) {
+          const pct = Math.min(100, Math.round((state.starsEarned / nextRank.minStars) * 100));
+          bar.style.width = pct + '%';
+          text.innerText = `${state.starsEarned} / ${nextRank.minStars} Stars`;
+        } else {
+          bar.style.width = '100%';
+          text.innerText = `${state.starsEarned} Stars (Max Rank!)`;
+        }
+      }
+      renderBadgesGrid();
+      updateRedeemDisplay();
+    }
+
+    function addStars(count) {
+      const oldRank = getRankFromStars(state.starsEarned).name;
+      state.starsEarned += count;
+      saveState();
+      updateHeaderAndRanks();
+      const newRank = getRankFromStars(state.starsEarned).name;
+      if (oldRank !== newRank) {
+        showToast("RANK UP! 🎉", `Your new rank is: ${newRank}`);
+        triggerConfetti(true);
+      }
+    }
+
+    // MASCOT & SHOP CATALOGS
+    const SKINS = [
+      { id: 'classic', name: 'Classic Pixel', color: '#6366f1', minStars: 0, price: 0 },
+      { id: 'golden', name: 'Golden Bot', color: '#f59e0b', minStars: 60, price: 60 },
+      { id: 'cyber', name: 'Cyber Neon', color: '#10b981', minStars: 120, price: 120 },
+      { id: 'cosmic', name: 'Cosmic Purple', color: '#a855f7', minStars: 220, price: 200 }
+    ];
+
+    const ACCESSORIES = [
+      { id: 'none', name: 'None', icon: '❌', minStars: 0, price: 0 },
+      { id: 'crown', name: 'King Crown', icon: '👑', minStars: 25, price: 25 },
+      { id: 'glasses', name: 'Cool Shades', icon: '🕶️', minStars: 60, price: 40 },
+      { id: 'party', name: 'Party Hat', icon: '🥳', minStars: 120, price: 30 }
+    ];
+
+    const SHOP_MASCOTS = [
+      { id: 'mascot_pixel', name: 'Pixel the Cat', shortName: 'Pixel', icon: '🐱', price: 0 },
+      { id: 'mascot_robo', name: 'Robo-Byte', shortName: 'Robo-Byte', icon: '🤖', price: 50 },
+      { id: 'mascot_barnaby', name: 'Barnaby Pup', shortName: 'Barnaby', icon: '🐶', price: 40 },
+      { id: 'mascot_leo', name: 'Leo the Lion', shortName: 'Leo', icon: '🦁', price: 120 }
+    ];
+
+    const THEMES = [
+      { id: 'default', name: 'Emerald Land', bg: '#f0fdf4', minStars: 0, price: 0, isDark: false },
+      { id: 'sky', name: 'Sky Blue', bg: '#f0f9ff', minStars: 0, price: 0, isDark: false },
+      { id: 'sunset', name: 'Sunset Warm', bg: '#fff7ed', minStars: 60, price: 60, isDark: false },
+      { id: 'space', name: 'Night Galaxy', bg: '#1e1b4b', minStars: 120, price: 120, isDark: true }
+    ];
+
+    const SHOP_FX = [
+      { id: 'fx_polyphonic_chimes', name: 'Arcade Chimes', icon: '🎵', price: 80 },
+      { id: 'fx_golden_particle', name: 'Golden Explosion', icon: '🎉', price: 100 }
+    ];
+
+    function getMascotAccessoryOverlay(accessoryId) {
+      if (accessoryId === 'crown') {
+        return `
+          <g>
+            <path d="M32 30 L32 14 L40 22 L50 10 L60 22 L68 14 L68 30 Z" fill="#fbbf24" stroke="#b45309" stroke-width="2" stroke-linejoin="round" />
+            <rect x="32" y="26" width="36" height="6" rx="2" fill="#f59e0b" stroke="#b45309" stroke-width="1.5" />
+            <circle cx="32" cy="14" r="2.2" fill="#ef4444" />
+            <circle cx="50" cy="10" r="2.4" fill="#3b82f6" />
+            <circle cx="68" cy="14" r="2.2" fill="#ef4444" />
+          </g>
+        `;
+      }
+      if (accessoryId === 'glasses') {
+        return `
+          <g fill="#111827" stroke="#111827">
+            <rect x="28" y="42" width="19" height="13" rx="5" fill-opacity="0.9" />
+            <rect x="53" y="42" width="19" height="13" rx="5" fill-opacity="0.9" />
+            <path d="M47 48 H53" stroke-width="3" stroke-linecap="round" />
+            <path d="M28 47 L21 44" stroke-width="3" stroke-linecap="round" />
+            <path d="M72 47 L79 44" stroke-width="3" stroke-linecap="round" />
+            <circle cx="34" cy="46" r="2" fill="#ffffff" fill-opacity="0.35" stroke="none" />
+            <circle cx="59" cy="46" r="2" fill="#ffffff" fill-opacity="0.35" stroke="none" />
+          </g>
+        `;
+      }
+      if (accessoryId === 'party') {
+        return `
+          <g transform="rotate(10 58 29)">
+            <ellipse cx="58" cy="30" rx="13" ry="3" fill="#be185d" />
+            <path d="M48 30 L58 8 L68 30 Z" fill="#ec4899" stroke="#be185d" stroke-width="2" stroke-linejoin="round" />
+            <path d="M51 23 L65 23" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+            <path d="M54 17 L62 17" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+            <circle cx="58" cy="8" r="4" fill="#fde047" stroke="#eab308" stroke-width="1.5" />
+          </g>
+        `;
+      }
+      return '';
+    }
+
+    function renderMascotSVG() {
+      const activeSkin = SKINS.find(s => s.id === state.selectedSkin) || SKINS[0];
+      const acc = ACCESSORIES.find(a => a.id === state.selectedAccessory) || ACCESSORIES[0];
+      const accOverlay = getMascotAccessoryOverlay(acc.id);
+
+      const container = document.getElementById('mascot-svg-container');
+      if (!container) return;
+      container.innerHTML = `
+        <svg viewBox="0 0 100 100" class="w-28 h-28 drop-shadow-md">
+          <rect x="20" y="30" width="60" height="50" rx="14" fill="${activeSkin.color}" />
+          <circle cx="38" cy="50" r="6" fill="#ffffff" />
+          <circle cx="62" cy="50" r="6" fill="#ffffff" />
+          <circle cx="38" cy="50" r="3" fill="#000000" />
+          <circle cx="62" cy="50" r="3" fill="#000000" />
+          <path d="M 40 65 Q 50 72 60 65" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" />
+          ${accOverlay}
+        </svg>
+      `;
+    }
+
+    function renderMascotModalGrid() {
+      const sGrid = document.getElementById('skins-grid');
+      if (sGrid) {
+        sGrid.innerHTML = SKINS.map(s => {
+          const locked = state.starsEarned < s.minStars && !state.inventory.includes(s.id);
+          const sel = state.selectedSkin === s.id;
+          return `
+            <button onclick="${locked ? '' : `selectSkin('${s.id}')`}" class="p-2 border-2 rounded-xl text-center text-xs font-bold ${sel ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'} ${locked ? 'opacity-40 cursor-not-allowed' : ''}">
+              <div class="w-8 h-8 rounded-full mx-auto mb-1" style="background-color:${s.color}"></div>
+              ${s.name} ${locked ? `<div>🔒${s.minStars}⭐</div>` : ''}
+            </button>
+          `;
+        }).join('');
+      }
+
+      const aGrid = document.getElementById('accessories-grid');
+      if (aGrid) {
+        aGrid.innerHTML = ACCESSORIES.map(a => {
+          const locked = state.starsEarned < a.minStars && !state.inventory.includes(a.id);
+          const sel = state.selectedAccessory === a.id;
+          return `
+            <button onclick="${locked ? '' : `selectAccessory('${a.id}')`}" class="p-2 border-2 rounded-xl text-center text-xs font-bold ${sel ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'} ${locked ? 'opacity-40 cursor-not-allowed' : ''}">
+              <div class="text-xl mb-1">${a.icon}</div>
+              ${a.name} ${locked ? `<div>🔒${a.minStars}⭐</div>` : ''}
+            </button>
+          `;
+        }).join('');
+      }
+    }
+
+    function selectSkin(id) {
+      state.selectedSkin = id;
+      state.activeSkin = id;
+      if (!state.inventory.includes(id)) state.inventory.push(id);
+      saveState();
+      renderMascotSVG();
+      renderMascotModalGrid();
+    }
+    function selectAccessory(id) {
+      state.selectedAccessory = id;
+      state.activeAccessory = id;
+      if (!state.inventory.includes(id)) state.inventory.push(id);
+      saveState();
+      renderMascotSVG();
+      renderMascotModalGrid();
+    }
+    function selectMascot(id) {
+      const mascot = SHOP_MASCOTS.find(m => m.id === id);
+      if (!mascot || !state.inventory.includes(id)) return;
+      state.activeMascot = id;
+      saveState();
+      renderMascotSVG();
+    }
+
+    function applyTheme(themeId) {
+      state.theme = themeId;
+      state.activeTheme = themeId;
+      if (!state.inventory.includes(themeId)) state.inventory.push(themeId);
+      saveState();
+      const t = THEMES.find(x => x.id === themeId) || THEMES[0];
+      document.body.style.backgroundColor = t.bg;
+      if (t.isDark) document.body.classList.add('dark-theme');
+      else document.body.classList.remove('dark-theme');
+      renderThemesGrid();
+    }
+
+    function renderThemesGrid() {
+      const grid = document.getElementById('themes-grid');
+      if (!grid) return;
+      grid.innerHTML = THEMES.map(t => {
+        const locked = state.starsEarned < t.minStars && !state.inventory.includes(t.id);
+        const sel = state.theme === t.id;
+        return `
+          <button onclick="${locked ? '' : `applyTheme('${t.id}')`}" class="p-3 border-2 rounded-xl text-left text-xs font-bold ${sel ? 'border-indigo-600' : 'border-slate-200'} ${locked ? 'opacity-40 cursor-not-allowed' : ''}">
+            <div class="h-6 w-full rounded mb-1" style="background-color:${t.bg}"></div>
+            ${t.name} ${locked ? `<span class="float-right">🔒${t.minStars}⭐</span>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderBadgesGrid() {
+      const grid = document.getElementById('modal-badges-grid');
+      if (!grid) return;
+      const groups = [
+        { id: '35', label: '3-5 Yrs', icon: '🐱' },
+        { id: '67', label: '6-7 Yrs', icon: '🚀' },
+        { id: '89', label: '8-9 Yrs', icon: '🧙‍♂️' },
+        { id: '1012', label: '10-12 Yrs', icon: '⚡' }
+      ];
+      grid.innerHTML = groups.map(g => {
+        const p = state.playedAgeGroups.includes(g.id);
+        return `
+          <div class="border-2 rounded-xl p-2 text-center ${p ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 opacity-50'}">
+            <div class="text-2xl">${g.icon}</div>
+            <p class="text-[10px] font-bold text-slate-700 mt-1">${g.label}</p>
+            <span class="text-[9px] font-bold ${p ? 'text-emerald-600' : 'text-slate-400'}">${p ? 'Earned' : 'Locked'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // NAVIGATION
+    function switchMainTab(tab) {
+      if (state.pagemode === 'wizard' && tab !== 'wizard') resetActiveSession();
+      if (typeof EXAM !== 'undefined' && EXAM.active && tab !== 'quiz') {
+        exitExamView();
+      }
+      state.pagemode = tab;
+      saveState();
+
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      const targetSec = document.getElementById(`view-${tab}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+
+      ['hub', 'age', 'calc', 'quiz', 'mp', 'shop'].forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-800');
+          btn.classList.remove('bg-white', 'text-slate-800', 'border-slate-300');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-800');
+          btn.classList.add('bg-white', 'text-slate-800', 'border-slate-300');
+        }
+      });
+
+      if (tab === 'age') renderPuzzlesGrid();
+      if (tab === 'quiz') generateQuizQuestion();
+      if (tab === 'shop') renderMarketplace();
+    }
+
+    // PUZZLES & COMPREHENSIVE DATA (Requirement 1 & 4)
+    function computeSetOperation(setA, setB, op) {
+      if (op === '∩') return setA.filter(x => setB.includes(x));
+      if (op === '∪') return Array.from(new Set([...setA, ...setB])).sort((a,b)=>a-b);
+      if (op === '-') return setA.filter(x => !setB.includes(x));
+      return [];
+    }
+
+    const PUZZLE_DATA = {
+      '35': [
+        { id: 'p35_1', title: 'Fruit Basket Counter', type: 'count', icon: '🍎', items: 5, target: 5, hint: 'Count all apples in the basket!' },
+        { id: 'p35_2', title: 'Pop-Count Balloons', type: 'pop', icon: '🎈', items: 4, target: 4, hint: 'Pop 4 balloons!' },
+        { id: 'p35_3', title: 'Duckling Parade', type: 'wizard', num1: 2, num2: 1, op: '+', icon: '🦆', hint: 'Add 2 ducks and 1 duck!' },
+        { id: 'p35_4', title: 'Starry Night Count', type: 'wizard', num1: 3, num2: 2, op: '+', icon: '⭐', hint: 'Count 3 stars plus 2 stars!' },
+        { id: 'p35_5', title: 'Floating Soap Bubbles', type: 'pop', icon: '🫧', items: 5, target: 5, hint: 'Pop 5 soap bubbles!' },
+        { id: 'p35_6', title: 'Cookie Snacking', type: 'wizard', num1: 4, num2: 1, op: '-', icon: '🍪', hint: '4 cookies minus 1 eaten cookie!' },
+        { id: 'p35_7', title: 'Puppy Bone Count', type: 'count', icon: '🦴', items: 3, target: 3, hint: 'Count how many bones puppy has!' },
+        { id: 'p35_8', title: 'Butterfly Garden', type: 'count', icon: '🦋', items: 6, target: 6, hint: 'Count the fluttery butterflies!' },
+        { id: 'p35_9', title: 'Candy Jar Addition', type: 'wizard', num1: 1, num2: 3, op: '+', icon: '🍬', hint: '1 sweet candy plus 3 candies!' },
+        { id: 'p35_10', title: 'Kitty Paw Steps', type: 'wizard', num1: 5, num2: 2, op: '-', icon: '🐾', hint: '5 paw steps minus 2 steps!' },
+        { id: 'p35_11', title: 'Balloon Fiesta', type: 'pop', icon: '🎈', items: 3, target: 3, hint: 'Pop 3 colorful party balloons!' },
+        { id: 'p35_12', title: 'Ice Cream Scoops', type: 'count', icon: '🍨', items: 4, target: 4, hint: 'Count the yummy ice cream scoops!' },
+        { id: 'p35_13', title: 'Twinkle Star Count', type: 'toddler', icon: '⭐', maxCount: 6, hint: 'Count the stars, tap the right number!' },
+        { id: 'p35_14', title: 'Fishy Count Party', type: 'toddler', icon: '🐠', maxCount: 6, hint: 'How many fish are swimming?' }
+      ],
+      '67': [
+        { id: 'p67_1', title: 'Clock Master: 3 O\'Clock', type: 'clock', targetHour: 3, icon: '⏰', hint: 'Set the hour hand to 3!' },
+        { id: 'p67_2', title: 'Add Apples', type: 'wizard', num1: 4, num2: 3, op: '+', icon: '🍎', hint: 'Count both groups together!' },
+        { id: 'p67_3', title: 'Space Station Jump', type: 'wizard', num1: 7, num2: 5, op: '+', icon: '🚀', hint: '7 rockets plus 5 rockets!' },
+        { id: 'p67_4', title: 'Subtraction Safari', type: 'wizard', num1: 10, num2: 4, op: '-', icon: '🦁', hint: '10 lions minus 4 lions!' },
+        { id: 'p67_5', title: 'Froggy Pond Leap', type: 'wizard', num1: 8, num2: 6, op: '+', icon: '🐸', hint: '8 frogs jump plus 6 more!' },
+        { id: 'p67_6', title: 'Treasure Chest Coins', type: 'wizard', num1: 12, num2: 5, op: '-', icon: '🪙', hint: '12 gold coins take away 5!' },
+        { id: 'p67_7', title: 'Clock Master: 6 O\'Clock', type: 'clock', targetHour: 6, icon: '⏰', hint: 'Find the clock showing 6:00!' },
+        { id: 'p67_8', title: 'Fruit Stand Addition', type: 'wizard', num1: 9, num2: 4, op: '+', icon: '🍓', hint: '9 strawberries plus 4 more!' },
+        { id: 'p67_9', title: 'Alien Spaceship Subtract', type: 'wizard', num1: 15, num2: 6, op: '-', icon: '🛸', hint: '15 saucers minus 6 departed!' },
+        { id: 'p67_10', title: 'Double Trouble', type: 'wizard', num1: 8, num2: 8, op: '+', icon: '👯', hint: 'Double 8! What is 8 + 8?' },
+        { id: 'p67_11', title: 'Clock Master: 9 O\'Clock', type: 'clock', targetHour: 9, icon: '⏰', hint: 'Find the clock showing 9:00!' },
+        { id: 'p67_12', title: 'Dino Egg Hatching', type: 'wizard', num1: 14, num2: 7, op: '-', icon: '🦕', hint: '14 eggs minus 7 hatched eggs!' },
+        { id: 'p67_13', title: 'Bigger or Smaller?', type: 'compare', icon: '⚖️', maxVal: 30, hint: 'Compare using <, > or =.' },
+        { id: 'p67_14', title: 'Bead Value Builder', type: 'abacus', icon: '🧮', maxTarget: 99, hint: 'Build the target number with beads!' }
+      ],
+      '89': [
+        { id: 'p89_1', title: 'Wizard Multiplier', type: 'wizard', num1: 4, num2: 3, op: '*', icon: '🧙‍♂️', hint: 'Count the groups of 3!' },
+        { id: 'p89_2', title: 'Wizard Division', type: 'wizard', num1: 12, num2: 4, op: '/', icon: '🧪', hint: 'Count the items per group!' },
+        { id: 'p89_3', title: 'Large Multiplication', type: 'wizard', num1: 8, num2: 5, op: '*', icon: '⚡', hint: 'Count 8 groups of 5!' },
+        { id: 'p89_4', title: 'Dragon Multiplication', type: 'wizard', num1: 6, num2: 7, op: '*', icon: '🐉', hint: '6 dragons with 7 coins each!' },
+        { id: 'p89_5', title: 'Pirate Gold Split', type: 'wizard', num1: 24, num2: 3, op: '/', icon: '🏴‍☠️', hint: 'Split 24 gold coins among 3 pirates!' },
+        { id: 'p89_6', title: 'Magic Potion Math', type: 'wizard', num1: 9, num2: 4, op: '*', icon: '🔮', hint: 'Brew 9 batches with 4 crystals each!' },
+        { id: 'p89_7', title: 'Speedy 7s Times Tables', type: 'wizard', num1: 7, num2: 8, op: '*', icon: '⏱️', hint: 'Solve 7 times 8 fast!' },
+        { id: 'p89_8', title: 'Missing Number Mystery', type: 'wizard', num1: 15, num2: 17, op: '+', icon: '🕵️', hint: 'Add 15 and 17 to solve the clue!' },
+        { id: 'p89_9', title: 'Multiplication Mania', type: 'wizard', num1: 9, num2: 6, op: '*', icon: '🎯', hint: 'What is 9 × 6?' },
+        { id: 'p89_10', title: 'Castle Division', type: 'wizard', num1: 36, num2: 6, op: '/', icon: '🏰', hint: 'Divide 36 castle guards into 6 towers!' },
+        { id: 'p89_11', title: 'Pizza Slice Fraction', type: 'wizard', num1: 16, num2: 2, op: '/', icon: '🍕', hint: 'Half of 16 pizza slices!' },
+        { id: 'p89_12', title: 'Perimeter Patrol', type: 'wizard', num1: 14, num2: 14, op: '+', icon: '📐', hint: 'Calculate double 14 units!' },
+        { id: 'p89_13', title: 'Number Scale Compare', type: 'compare', icon: '⚖️', maxVal: 100, hint: 'Compare larger numbers with <, =, >.' },
+        { id: 'p89_14', title: 'Line Up the Numbers', type: 'order', icon: '🔢', poolSize: 4, maxVal: 90, hint: 'Tap numbers in the right order!' }
+      ],
+      '1012': [
+        { id: 'p1012_1', title: 'Set Intersection', type: 'set', setA: [1, 2, 3, 4], setB: [3, 4, 5], op: '∩', icon: '📊', hint: 'Find common numbers in both sets.' },
+        { id: 'p1012_2', title: 'Set Union', type: 'set', setA: [1, 5], setB: [2, 5, 6], op: '∪', icon: '📈', hint: 'Combine all unique numbers from both sets.' },
+        { id: 'p1012_3', title: 'Set Difference', type: 'set', setA: [1, 2, 3, 4, 5], setB: [3, 4, 6], op: '-', icon: '🔍', hint: 'Elements in Set A not in Set B.' },
+        { id: 'p1012_4', title: 'Subset Detective', type: 'set', setA: [2, 4], setB: [1, 2, 3, 4, 5], op: '∩', icon: '🧩', hint: 'Find the elements in both Set A and Set B.' },
+        { id: 'p1012_5', title: 'Multi-Set Intersect', type: 'set', setA: [2, 4, 6, 8], setB: [4, 8, 12], op: '∩', icon: '📐', hint: 'Find the even multiples in common.' },
+        { id: 'p1012_6', title: 'Multiplication Master', type: 'wizard', num1: 12, num2: 4, op: '*', icon: '⚡', hint: 'Solve 12 × 4!' },
+        { id: 'p1012_7', title: 'Advanced Quotient', type: 'wizard', num1: 144, num2: 12, op: '/', icon: '🧠', hint: 'Divide 144 by 12!' },
+        { id: 'p1012_8', title: 'Order of Operations', type: 'wizard', num1: 20, num2: 15, op: '+', icon: '🎯', hint: 'Solve 20 + 15!' },
+        { id: 'p1012_9', title: 'Prime Product', type: 'wizard', num1: 7, num2: 11, op: '*', icon: '💎', hint: 'Multiply two prime numbers: 7 × 11!' },
+        { id: 'p1012_10', title: 'Negative Number Battle', type: 'wizard', num1: 25, num2: 12, op: '-', icon: '❄️', hint: '25 minus 12!' },
+        { id: 'p1012_11', title: 'Power Multiplication', type: 'wizard', num1: 15, num2: 6, op: '*', icon: '🔋', hint: 'Multiply 15 by 6!' },
+        { id: 'p1012_12', title: 'Percentage Step', type: 'wizard', num1: 25, num2: 4, op: '*', icon: '🏷️', hint: 'Calculate 25 × 4!' },
+        { id: 'p1012_13', title: 'Master Sequence', type: 'order', icon: '📶', poolSize: 5, maxVal: 200, hint: 'Arrange 5 numbers in correct order.' },
+        { id: 'p1012_14', title: 'Algebra Equation Solver', type: 'wizard', num1: 36, num2: 4, op: '/', icon: '🔑', hint: 'If 4 × x = 36, find x!' }
+      ]
+    };
+
+    function selectAgeGroup(groupId) {
+      state.activeAgeGroup = groupId;
+      if (!state.playedAgeGroups.includes(groupId)) {
+        state.playedAgeGroups.push(groupId);
+        saveState();
+        updateHeaderAndRanks();
+      }
+      switchMainTab('age');
+    }
+
+    function renderPuzzlesGrid() {
+      const grid = document.getElementById('puzzles-grid');
+      const puzzles = PUZZLE_DATA[state.activeAgeGroup] || [];
+      const showFavs = document.getElementById('fav-filter-btn').innerText.includes('ON');
+      const filtered = showFavs ? puzzles.filter(p => state.favorites.includes(p.id)) : puzzles;
+
+      const titleEl = document.getElementById('selected-age-title');
+      const ageLabels = { '35': '3-5 Years', '67': '6-7 Years', '89': '8-9 Years', '1012': '10-12 Years' };
+      if (titleEl) titleEl.innerText = `${ageLabels[state.activeAgeGroup] || 'Math'} Puzzles`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-8 font-bold text-slate-500">No puzzles found.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const isFav = state.favorites.includes(p.id);
+        return `
+          <div class="bg-white border-2 border-indigo-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="text-3xl">${p.icon || '🧩'}</span>
+              <button onclick="toggleFavorite('${p.id}')" class="text-xl">${isFav ? '⭐' : '☆'}</button>
+            </div>
+            <h3 class="font-fredoka text-indigo-700 text-lg">${p.title}</h3>
+            <p class="text-xs text-slate-600 font-bold">${p.hint || 'MathMeet activity.'}</p>
+            <button onclick="startPuzzle('${p.id}')" class="w-full block-btn bg-indigo-600 text-white border-indigo-800 font-bold py-2 rounded-xl text-sm">Play Puzzle 🚀</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleFavorite(id) {
+      if (state.favorites.includes(id)) state.favorites = state.favorites.filter(x => x !== id);
+      else state.favorites.push(id);
+      saveState();
+      renderPuzzlesGrid();
+    }
+
+    function toggleFavoritesFilter() {
+      const btn = document.getElementById('fav-filter-btn');
+      btn.innerText = btn.innerText.includes('OFF') ? '⭐ Favorites Only: ON' : '⭐ Favorites Only: OFF';
+      renderPuzzlesGrid();
+    }
+
+    function changeGameMode(val) { state.gameMode = val; }
+
+    // ROBUST startPuzzle() & renderWizardStep() (Requirement 1 & 4)
+    function startPuzzle(puzzleId) {
+      let pObj = null;
+      for (const group of Object.values(PUZZLE_DATA)) {
+        const found = group.find(x => x.id === puzzleId);
+        if (found) { pObj = found; break; }
+      }
+      if (!pObj) {
+        // Fallback for missing puzzle
+        pObj = { id: puzzleId, title: 'Math Challenge', type: 'wizard', num1: 5, num2: 5, op: '+', icon: '⭐', hint: 'Solve the equation!' };
+      }
+      state.activePuzzle = pObj;
+      state.wizardStep = 1;
+      switchMainTab('wizard');
+      renderWizardStep();
+    }
+
+    function renderWizardStep() {
+      const p = state.activePuzzle;
+      if (!p) { switchMainTab('age'); return; }
+      const card = document.getElementById('wizard-card');
+      document.getElementById('wizard-puzzle-title').innerText = p.title || 'Math Activity';
+      document.getElementById('wizard-mode-badge').innerText = state.gameMode === 'challenge' ? '⚡ Challenge (2x Stars)' : 'Practice Mode';
+
+      if (p.type === 'wizard') {
+        const ans = p.op === '+' ? p.num1 + p.num2 : p.op === '-' ? p.num1 - p.num2 : p.op === '*' ? p.num1 * p.num2 : Math.floor(p.num1 / p.num2);
+        const opts = Array.from(new Set([ans, ans + 2, Math.max(0, ans - 3)])).sort(() => Math.random() - 0.5);
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">${p.hint || 'Calculate the answer!'}</h3>
+            <div class="text-4xl font-fredoka text-indigo-600 bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-200">
+              ${p.num1} ${p.op === '*' ? '×' : p.op === '/' ? '÷' : p.op} ${p.num2} = ?
+            </div>
+            <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+              ${opts.map(opt => `<button onclick="checkWizardAnswer(${opt}, ${ans})" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold p-3 rounded-xl text-xl">${opt}</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'set') {
+        const correctSet = computeSetOperation(p.setA, p.setB, p.op);
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-xl text-slate-800">Set A = {${p.setA.join(', ')}} & Set B = {${p.setB.join(', ')}}</h3>
+            <p class="font-bold text-indigo-600 text-lg">Find Set A ${p.op} Set B</p>
+            <div class="flex justify-center gap-3">
+              <button onclick="checkWizardAnswer('c', 'c')" class="block-btn bg-emerald-500 text-white border-emerald-700 font-bold p-3 rounded-xl text-lg">{ ${correctSet.join(', ')} }</button>
+              <button onclick="checkWizardAnswer('w', 'c')" class="block-btn bg-slate-200 text-slate-800 border-slate-400 font-bold p-3 rounded-xl text-lg">{ ${p.setA.slice(0, 2).join(', ')} }</button>
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'toddler' || p.type === 'count') {
+        const count = p.target || Math.floor(Math.random() * (p.maxCount || 6)) + 1;
+        const icon = p.icon || '⭐';
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">${p.hint || 'How many do you count?'}</h3>
+            <div class="text-4xl bg-pink-50 border-2 border-pink-200 rounded-2xl p-6 tracking-widest">${icon.repeat(count)}</div>
+            <div class="grid grid-cols-4 gap-2 max-w-sm mx-auto">
+              ${[1, 2, 3, 4, 5, 6].map(n => `<button onclick="checkWizardAnswer(${n}, ${count})" class="block-btn bg-pink-400 text-white border-pink-600 font-bold p-3 rounded-xl text-lg">${n}</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'compare') {
+        const left = Math.floor(Math.random() * 20) + 1;
+        const right = Math.floor(Math.random() * 20) + 1;
+        const correct = left < right ? '<' : left > right ? '>' : '=';
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">Compare the numbers:</h3>
+            <div class="text-4xl font-fredoka text-indigo-700 bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-6 flex justify-center items-center gap-6">
+              <span>${left}</span><span class="text-slate-400">?</span><span>${right}</span>
+            </div>
+            <div class="flex justify-center gap-4">
+              <button onclick="checkWizardAnswer('<', '${correct}')" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-6 py-3 rounded-xl text-2xl">&lt;</button>
+              <button onclick="checkWizardAnswer('=', '${correct}')" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-6 py-3 rounded-xl text-2xl">=</button>
+              <button onclick="checkWizardAnswer('>', '${correct}')" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-6 py-3 rounded-xl text-2xl">&gt;</button>
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'pop') {
+        let popped = 0;
+        const target = p.target || 4;
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">Pop ${target} Balloons!</h3>
+            <div id="pop-area" class="flex justify-center gap-3 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+              ${[0, 1, 2, 3, 4].map(i => `<button onclick="this.innerText='💥'; this.disabled=true; popped++; if(popped>=${target})checkWizardAnswer(1,1);" class="text-5xl hover:scale-110 transition">🎈</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'clock') {
+        const h = p.targetHour || 3;
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">Which clock shows ${h}:00 o'clock?</h3>
+            <div class="flex justify-center gap-3">
+              <button onclick="checkWizardAnswer(1, 1)" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold p-4 rounded-xl text-xl">🕒 ${h}:00</button>
+              <button onclick="checkWizardAnswer(0, 1)" class="block-btn bg-slate-200 text-slate-800 border-slate-400 font-bold p-4 rounded-xl text-xl">🕕 ${(h+3)%12 || 12}:00</button>
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'order') {
+        const size = p.poolSize || 4;
+        const max = p.maxVal || 50;
+        let pool = [];
+        while (pool.length < size) {
+          const r = Math.floor(Math.random() * max) + 1;
+          if (!pool.includes(r)) pool.push(r);
+        }
+        const sorted = [...pool].sort((a,b) => a - b);
+        let userTapped = [];
+        window._orderActive = { pool, sorted, userTapped };
+        
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">${p.hint || 'Tap the numbers in order from smallest to largest:'}</h3>
+            <div id="order-slots" class="flex justify-center gap-3 py-3">
+              ${sorted.map((_, i) => `<div id="order-slot-${i}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-3 border-dashed border-indigo-300 bg-indigo-50 flex items-center justify-center font-fredoka text-2xl text-indigo-700">_</div>`).join('')}
+            </div>
+            <div id="order-buttons" class="flex flex-wrap justify-center gap-3">
+              ${pool.map((num, i) => `
+                <button id="order-btn-${i}" onclick="handleOrderTap(${num}, 'order-btn-${i}')" class="block-btn bg-indigo-500 hover:bg-indigo-600 text-white border-indigo-700 font-bold px-5 py-3 rounded-2xl text-2xl shadow-md">
+                  ${num}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (p.type === 'abacus') {
+        const tens = Math.floor(Math.random() * 5) + 1;
+        const ones = Math.floor(Math.random() * 8) + 1;
+        const total = tens * 10 + ones;
+        const opts = Array.from(new Set([total, total + 10, Math.max(11, total - 10), tens * 10])).slice(0, 3).sort(() => Math.random() - 0.5);
+        if (!opts.includes(total)) opts[0] = total;
+        opts.sort(() => Math.random() - 0.5);
+
+        card.innerHTML = `
+          <div class="space-y-4 text-center my-auto">
+            <h3 class="font-fredoka text-2xl text-slate-800">${p.hint || 'Count the place value blocks:'}</h3>
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 max-w-md mx-auto space-y-3">
+              <div class="flex justify-around text-xs font-bold text-amber-900 uppercase tracking-wider">
+                <span>Tens (${tens})</span>
+                <span>Ones (${ones})</span>
+              </div>
+              <div class="flex justify-around items-center">
+                <div class="flex flex-col gap-1 items-center bg-white/70 p-3 rounded-xl border border-amber-200 min-w-[100px]">
+                  ${Array(tens).fill('🟢 10').map(t => `<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded-md border border-emerald-300">${t}</span>`).join('')}
+                </div>
+                <span class="text-2xl font-fredoka text-slate-400">+</span>
+                <div class="flex flex-col gap-1 items-center bg-white/70 p-3 rounded-xl border border-amber-200 min-w-[100px]">
+                  ${Array(ones).fill('🟡 1').map(o => `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-md border border-amber-300">${o}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-center gap-3">
+              ${opts.map(opt => `<button onclick="checkWizardAnswer(${opt}, ${total})" class="block-btn bg-indigo-500 text-white border-indigo-700 font-bold px-6 py-3 rounded-xl text-2xl">${opt}</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        // Safe default activity renderer
+        card.innerHTML = `
+          <div class="text-center space-y-4 my-auto">
+            <div class="text-6xl">${p.icon || '🧩'}</div>
+            <h3 class="font-fredoka text-2xl text-slate-800">${p.title}</h3>
+            <p class="font-bold text-slate-600">${p.hint}</p>
+            <button onclick="checkWizardAnswer(1, 1)" class="block-btn bg-emerald-500 text-white border-emerald-700 font-bold px-6 py-3 rounded-xl text-lg">Complete Activity 🎉</button>
+          </div>
+        `;
+      }
+    }
+
+    function handleOrderTap(num, btnId) {
+      if (!window._orderActive) return;
+      const { sorted, userTapped } = window._orderActive;
+      const expected = sorted[userTapped.length];
+      if (num === expected) {
+        userTapped.push(num);
+        const slot = document.getElementById(`order-slot-${userTapped.length - 1}`);
+        if (slot) {
+          slot.innerText = num;
+          slot.className = 'w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-3 border-emerald-500 bg-emerald-100 flex items-center justify-center font-fredoka text-xl sm:text-2xl text-emerald-800 shadow-sm';
+        }
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.classList.add('opacity-30', 'pointer-events-none');
+        }
+        if (userTapped.length === sorted.length) {
+          setTimeout(() => checkWizardAnswer(1, 1), 300);
+        }
+      } else {
+        showToast('Try Again', 'Tap the numbers in order from smallest to largest!', '⚠️');
+        speakText('Tap the smallest remaining number!');
+      }
+    }
+
+    function checkWizardAnswer(userAns, correctAns) {
+      state.totalAttempts++;
+      if (userAns === correctAns) {
+        state.correctAttempts++;
+        state.completedPuzzles++;
+        const stars = state.gameMode === 'challenge' ? 10 : 5;
+        addStars(stars);
+        triggerConfetti(false);
+        speakText('Great job! Correct answer!');
+        showToast('Awesome! 🎉', `+${stars} Stars earned!`);
+        resetActiveSession();
+        switchMainTab('age');
+      } else {
+        speakText('Oops! Try again!');
+        showToast('Try Again', 'Count or calculate again!', '❌');
+      }
+      saveState();
+    }
+
+    // CALCULATOR (Safe Function constructor)
+    let calcExpr = '';
+    function calcInput(val) {
+      if (val === 'C') { calcExpr = ''; }
+      else if (val === '=') {
+        try {
+          const sanitized = calcExpr.replace(/[^0-9+\-*/.()]/g, '');
+          if (sanitized) {
+            calcExpr = String(new Function(`'use strict'; return (${sanitized})`)());
+            speakText(`The answer is ${calcExpr}`);
+          }
+        } catch (e) { calcExpr = 'Error'; }
+      } else { calcExpr += val; }
+      document.getElementById('calc-display').innerText = calcExpr || '0';
+    }
+
+    // QUICK QUIZ & EXAMS
+    function switchQuizSubTab(sub) {
+      if (typeof EXAM !== 'undefined' && EXAM.active) exitExamView();
+      document.getElementById('quiz-sub-infinite').classList.toggle('hidden', sub !== 'infinite');
+      document.getElementById('quiz-sub-parent').classList.toggle('hidden', sub !== 'parent');
+      const examView = document.getElementById('quiz-sub-exam');
+      if (examView) examView.classList.add('hidden');
+      document.getElementById('quiz-tab-infinite').className = sub === 'infinite' ? 'block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm' : 'block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm';
+      document.getElementById('quiz-tab-parent').className = sub === 'parent' ? 'block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm' : 'block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm';
+    }
+    function setQuizOp(op) { state.quizOp = op; generateQuizQuestion(); }
+    function setQuizDiff(d) { state.quizDiff = d; generateQuizQuestion(); }
+
+    function generateQuizQuestion() {
+      let op = state.quizOp === 'mixed' ? ['+', '-', '*', '/'][Math.floor(Math.random() * 4)] : state.quizOp;
+      let max = state.quizDiff === 'easy' ? 10 : state.quizDiff === 'medium' ? 25 : 50;
+      let n1 = Math.floor(Math.random() * max) + 1;
+      let n2 = Math.floor(Math.random() * max) + 1;
+      if (op === '-' && n1 < n2) [n1, n2] = [n2, n1];
+      if (op === '/') n1 = n1 * n2;
+      state.currentQuizAnswer = op === '+' ? n1 + n2 : op === '-' ? n1 - n2 : op === '*' ? n1 * n2 : n1 / n2;
+      const displayOp = op === '*' ? '×' : op === '/' ? '÷' : op;
+      document.getElementById('quiz-question-text').innerText = `${n1} ${displayOp} ${n2} = ?`;
+      document.getElementById('quiz-user-input').value = '';
+    }
+
+    function submitQuizAnswer() {
+      const val = parseFloat(document.getElementById('quiz-user-input').value);
+      if (val === state.currentQuizAnswer) {
+        addStars(2);
+        speakText('Correct!');
+        triggerConfetti(false);
+        generateQuizQuestion();
+      } else {
+        speakText('Oops, try again!');
+        showToast('Try Again', 'Incorrect answer', '❌');
+      }
+    }
+
+    // EXAM CENTRE ENGINE (Multi-Question Assessment Flow & Report Card)
+    const EXAM = {
+      active: false,
+      title: '',
+      questions: [],
+      currentIndex: 0,
+      score: 0,
+      userAnswers: [],
+      timerSeconds: 0,
+      timerHandle: null
+    };
+
+    function startPrebuiltTest(type) {
+      const isJunior = type === 'junior';
+      const count = isJunior ? 10 : 15;
+      const ops = isJunior ? ['+', '-'] : ['+', '-', '*', '/'];
+      const maxVal = isJunior ? 20 : 50;
+      initExamSession(isJunior ? 'Junior Math Assessment' : 'Senior Master Assessment', count, ops, maxVal);
+    }
+
+    function handleCustomTestSubmit(e) {
+      e.preventDefault();
+      const opCheckboxes = document.querySelectorAll('input[name="ops"]:checked');
+      const ops = Array.from(opCheckboxes).map(cb => cb.value);
+      if (ops.length === 0) {
+        showToast('Select Operation', 'Please select at least one operation (+, -, ×, ÷)!', '⚠️');
+        return;
+      }
+      const count = parseInt(document.getElementById('custom-q-count').value, 10) || 10;
+      initExamSession('Custom Math Assessment', count, ops, 50);
+    }
+
+    function initExamSession(title, count, ops, maxVal) {
+      const questions = [];
+      for (let i = 0; i < count; i++) {
+        const op = ops[Math.floor(Math.random() * ops.length)];
+        let n1 = Math.floor(Math.random() * maxVal) + 1;
+        let n2 = Math.floor(Math.random() * (op === '*' || op === '/' ? 12 : maxVal)) + 1;
+        if (op === '-' && n1 < n2) [n1, n2] = [n2, n1];
+        if (op === '/') n1 = n1 * n2;
+        const answer = op === '+' ? n1 + n2 : op === '-' ? n1 - n2 : op === '*' ? n1 * n2 : n1 / n2;
+        questions.push({ id: i + 1, n1, n2, op, answer });
+      }
+
+      EXAM.active = true;
+      EXAM.title = title;
+      EXAM.questions = questions;
+      EXAM.currentIndex = 0;
+      EXAM.score = 0;
+      EXAM.userAnswers = [];
+      EXAM.timerSeconds = 0;
+      if (EXAM.timerHandle) clearInterval(EXAM.timerHandle);
+      EXAM.timerHandle = setInterval(() => {
+        if (EXAM.active) {
+          EXAM.timerSeconds++;
+          const timerEl = document.getElementById('exam-timer-display');
+          if (timerEl) {
+            const m = String(Math.floor(EXAM.timerSeconds / 60)).padStart(2, '0');
+            const s = String(EXAM.timerSeconds % 60).padStart(2, '0');
+            timerEl.innerText = `${m}:${s}`;
+          }
+        }
+      }, 1000);
+
+      document.getElementById('quiz-sub-parent').classList.add('hidden');
+      document.getElementById('quiz-sub-infinite').classList.add('hidden');
+      const examView = document.getElementById('quiz-sub-exam');
+      if (examView) examView.classList.remove('hidden');
+
+      speakText(`Starting ${title}! Good luck!`);
+      showToast('Exam Started! 📝', `Question 1 of ${count}`, '⏱️');
+      renderExamQuestion();
+    }
+
+    function renderExamQuestion() {
+      const examView = document.getElementById('quiz-sub-exam');
+      if (!examView) return;
+      const q = EXAM.questions[EXAM.currentIndex];
+      const total = EXAM.questions.length;
+      const progressPct = Math.round((EXAM.currentIndex / total) * 100);
+      const displayOp = q.op === '*' ? '×' : q.op === '/' ? '÷' : q.op;
+
+      examView.innerHTML = `
+        <div class="bg-white border-4 border-indigo-200 rounded-3xl p-6 shadow-xl space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-100 pb-4">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">Exam In Progress</span>
+              <h3 class="text-xl font-fredoka text-slate-800 mt-1">${EXAM.title}</h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="bg-amber-50 border border-amber-300 px-3 py-1.5 rounded-xl flex items-center gap-1 text-sm font-bold text-amber-800">
+                <span>⏱️</span>
+                <span id="exam-timer-display">00:00</span>
+              </div>
+              <button onclick="exitExamConfirm()" class="block-btn bg-slate-200 hover:bg-rose-100 text-slate-700 hover:text-rose-700 border-slate-400 font-bold px-3 py-1.5 rounded-xl text-xs">
+                Exit
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-bold text-slate-500">
+              <span>Question ${EXAM.currentIndex + 1} of ${total}</span>
+              <span>Score: ${EXAM.score} / ${EXAM.currentIndex}</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+              <div class="bg-indigo-500 h-full rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>
+            </div>
+          </div>
+
+          <div class="bg-indigo-50/60 border-2 border-indigo-100 rounded-2xl p-6 text-center space-y-4">
+            <div class="text-sm font-bold text-indigo-700">Solve the problem:</div>
+            <div class="text-4xl sm:text-5xl font-fredoka text-indigo-900 tracking-wider">
+              ${q.n1} ${displayOp} ${q.n2} = <span class="border-b-4 border-indigo-500 inline-block min-w-[70px] text-emerald-600 font-mono" id="exam-answer-slot">?</span>
+            </div>
+          </div>
+
+          <form onsubmit="submitExamCurrentAnswer(event)" class="space-y-4 max-w-sm mx-auto">
+            <div class="flex gap-2">
+              <input type="number" id="exam-user-input" autofocus class="w-full text-center text-3xl font-fredoka border-3 border-indigo-300 rounded-2xl py-3 focus:outline-none focus:border-indigo-600 bg-white shadow-inner" placeholder="Answer" required autocomplete="off">
+              <button type="submit" class="block-btn bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-700 font-bold px-6 rounded-2xl text-lg shadow-md">
+                Next ➔
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              ${[1,2,3,4,5,6,7,8,9,0].map(n => `<button type="button" onclick="examKeypadInput('${n}')" class="block-btn bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 font-bold py-2 rounded-xl text-xl">${n}</button>`).join('')}
+              <button type="button" onclick="examKeypadInput('del')" class="block-btn bg-rose-100 hover:bg-rose-200 text-rose-700 border-rose-300 font-bold py-2 rounded-xl text-sm">⌫ Del</button>
+              <button type="button" onclick="examKeypadInput('clear')" class="block-btn bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-400 font-bold py-2 rounded-xl text-sm">Clear</button>
+            </div>
+          </form>
+        </div>
+      `;
+
+      setTimeout(() => {
+        const inp = document.getElementById('exam-user-input');
+        if (inp) {
+          inp.focus();
+          inp.addEventListener('input', () => {
+            const slot = document.getElementById('exam-answer-slot');
+            if (slot) slot.innerText = inp.value || '?';
+          });
+        }
+      }, 50);
+    }
+
+    function examKeypadInput(val) {
+      const inp = document.getElementById('exam-user-input');
+      const slot = document.getElementById('exam-answer-slot');
+      if (!inp) return;
+      if (val === 'del') {
+        inp.value = inp.value.slice(0, -1);
+      } else if (val === 'clear') {
+        inp.value = '';
+      } else {
+        inp.value += val;
+      }
+      if (slot) slot.innerText = inp.value || '?';
+      inp.focus();
+    }
+
+    function submitExamCurrentAnswer(e) {
+      if (e) e.preventDefault();
+      const inp = document.getElementById('exam-user-input');
+      if (!inp || inp.value === '') return;
+      const userVal = parseFloat(inp.value);
+      const q = EXAM.questions[EXAM.currentIndex];
+      const isCorrect = userVal === q.answer;
+
+      if (isCorrect) {
+        EXAM.score++;
+        showToast('Correct! 🌟', '+1 Point', '✅');
+        speakText('Correct!');
+      } else {
+        showToast('Not Quite', `Answer was ${q.answer}`, '❌');
+      }
+
+      EXAM.userAnswers.push({
+        question: `${q.n1} ${q.op === '*' ? '×' : q.op === '/' ? '÷' : q.op} ${q.n2}`,
+        userAnswer: userVal,
+        correctAnswer: q.answer,
+        isCorrect
+      });
+
+      EXAM.currentIndex++;
+      if (EXAM.currentIndex < EXAM.questions.length) {
+        renderExamQuestion();
+      } else {
+        finishExamSession();
+      }
+    }
+
+    function finishExamSession() {
+      if (EXAM.timerHandle) {
+        clearInterval(EXAM.timerHandle);
+        EXAM.timerHandle = null;
+      }
+      EXAM.active = false;
+      const total = EXAM.questions.length;
+      const pct = Math.round((EXAM.score / total) * 100);
+      const passed = pct >= 60;
+      const starsEarned = EXAM.score * 3 + (passed ? 15 : 5);
+      addStars(starsEarned);
+      state.completedPuzzles++;
+      saveState();
+
+      if (passed) {
+        triggerConfetti(true);
+        speakText(`Congratulations! You scored ${EXAM.score} out of ${total}!`);
+      } else {
+        speakText(`Good effort! You scored ${EXAM.score} out of ${total}.`);
+      }
+
+      const m = String(Math.floor(EXAM.timerSeconds / 60)).padStart(2, '0');
+      const s = String(EXAM.timerSeconds % 60).padStart(2, '0');
+
+      const examView = document.getElementById('quiz-sub-exam');
+      if (!examView) return;
+
+      examView.innerHTML = `
+        <div class="bg-white border-4 border-indigo-200 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6 text-center">
+          <div class="text-6xl">${pct >= 80 ? '🏆' : pct >= 60 ? '🎉' : '📖'}</div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-200">Official Report Card</span>
+            <h3 class="text-2xl sm:text-3xl font-fredoka text-slate-800 mt-2">${EXAM.title} Complete!</h3>
+            <p class="text-sm font-bold text-slate-500 mt-1">Completed in ${m}:${s}</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+            <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4">
+              <div class="text-3xl font-fredoka text-indigo-700">${EXAM.score}/${total}</div>
+              <div class="text-xs font-bold text-indigo-500 uppercase">Score</div>
+            </div>
+            <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4">
+              <div class="text-3xl font-fredoka text-emerald-700">${pct}%</div>
+              <div class="text-xs font-bold text-emerald-500 uppercase">Grade</div>
+            </div>
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4">
+              <div class="text-3xl font-fredoka text-amber-700">+${starsEarned}</div>
+              <div class="text-xs font-bold text-amber-500 uppercase">Stars Won</div>
+            </div>
+          </div>
+
+          <div class="text-left max-w-md mx-auto space-y-2">
+            <h4 class="font-bold text-sm text-slate-700">Question Summary:</h4>
+            <div class="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+              ${EXAM.userAnswers.map((item, idx) => `
+                <div class="flex justify-between items-center text-xs p-2 rounded-xl border ${item.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}">
+                  <span class="font-mono font-bold">Q${idx + 1}: ${item.question}</span>
+                  <div class="flex items-center gap-2">
+                    <span>Your: <strong>${item.userAnswer}</strong></span>
+                    ${item.isCorrect ? '<span class="text-emerald-600 font-bold">✓</span>' : `<span class="text-rose-600 font-bold">✗ (Ans: ${item.correctAnswer})</span>`}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-3 pt-2">
+            <button onclick="exitExamView()" class="block-btn bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-800 font-bold px-6 py-3 rounded-xl text-base shadow-md">
+              Return to Exam Centre ➔
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function exitExamConfirm() {
+      if (confirm('Exit current exam? Progress in this session will not be saved.')) {
+        exitExamView();
+      }
+    }
+
+    function exitExamView() {
+      if (EXAM.timerHandle) {
+        clearInterval(EXAM.timerHandle);
+        EXAM.timerHandle = null;
+      }
+      EXAM.active = false;
+      const examView = document.getElementById('quiz-sub-exam');
+      if (examView) examView.classList.add('hidden');
+      document.getElementById('quiz-sub-parent').classList.remove('hidden');
+    }
+
+    // MULTIPLAYER (Bot & Online P2P) - Resolves Scoreboard ID clashes (Requirement 2)
+    function switchMpSubTab(sub) {
+      document.getElementById('mp-sub-bot').classList.toggle('hidden', sub !== 'bot');
+      document.getElementById('mp-sub-online').classList.toggle('hidden', sub !== 'online');
+      document.getElementById('mp-tab-bot').className = sub === 'bot' ? 'block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm' : 'block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm';
+      document.getElementById('mp-tab-online').className = sub === 'online' ? 'block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm' : 'block-btn bg-slate-200 text-slate-700 border-slate-400 font-bold px-4 py-2 rounded-xl text-sm';
+    }
+
+    const BOT = { difficulty: 'easy', playing: false, playerScore: 0, botScore: 0, currentQuestion: null, timerHandle: null };
+    function setBotDifficulty(d) {
+      BOT.difficulty = d;
+      ['easy', 'medium', 'hard'].forEach(x => {
+        const b = document.getElementById(`bot-diff-${x}`);
+        if (b) b.classList.toggle('bot-diff-active', x === d);
+      });
+    }
+
+    function startBotMatch() {
+      BOT.playing = true;
+      BOT.playerScore = 0;
+      BOT.botScore = 0;
+      updateBotScoreboard();
+      speakText('Match started!');
+      generateBotQuestion();
+    }
+
+    function stopBotMatch() {
+      BOT.playing = false;
+      if (BOT.timerHandle) clearTimeout(BOT.timerHandle);
+      document.getElementById('bot-question-text').innerText = 'Press Start to Begin!';
+      document.getElementById('bot-status-text').innerText = 'Match stopped.';
+    }
+
+    function generateBotQuestion() {
+      if (!BOT.playing) return;
+      const a = Math.floor(Math.random() * 12) + 1;
+      const b = Math.floor(Math.random() * 12) + 1;
+      const op = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+      BOT.currentQuestion = { text: `${a} ${op === '*' ? '×' : op} ${b}`, answer: op === '+' ? a+b : op === '-' ? a-b : a*b };
+      document.getElementById('bot-question-text').innerText = BOT.currentQuestion.text;
+      document.getElementById('bot-user-input').value = '';
+
+      const speed = BOT.difficulty === 'easy' ? 5000 : BOT.difficulty === 'medium' ? 3200 : 1800;
+      if (BOT.timerHandle) clearTimeout(BOT.timerHandle);
+      BOT.timerHandle = setTimeout(() => {
+        if (!BOT.playing) return;
+        BOT.botScore++;
+        updateBotScoreboard();
+        document.getElementById('bot-status-text').innerText = `Bot scored first! Answer was ${BOT.currentQuestion.answer}`;
+        setTimeout(generateBotQuestion, 1200);
+      }, speed);
+    }
+
+    function submitBotAnswer() {
+      if (!BOT.playing || !BOT.currentQuestion) return;
+      const val = Number(document.getElementById('bot-user-input').value);
+      if (val === BOT.currentQuestion.answer) {
+        BOT.playerScore++;
+        addStars(4);
+        updateBotScoreboard();
+        if (BOT.timerHandle) clearTimeout(BOT.timerHandle);
+        speakText('You got it first!');
+        triggerConfetti(false);
+        setTimeout(generateBotQuestion, 1000);
+      } else {
+        speakText('Wrong, try again!');
+      }
+    }
+
+    function updateBotScoreboard() {
+      const el = document.getElementById('bot-scoreboard');
+      if (el) el.innerText = `You: ${BOT.playerScore}  |  Bot: ${BOT.botScore}`;
+    }
+
+    // Online P2P Scoreboard
+    let MP = { localScore: 0, opponentScore: 0 };
+    function updateMpScoreboard() {
+      const el = document.getElementById('online-scoreboard');
+      if (el) el.innerText = `You: ${MP.localScore} pts vs Opponent: ${MP.opponentScore} pts`;
+    }
+    function hostArena() {
+      const code = 'MM-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      document.getElementById('mp-arena-id').innerText = code;
+      document.getElementById('mp-status').innerText = `Room created! Waiting for opponent...`;
+      setTimeout(() => {
+        document.getElementById('mp-status').innerText = `Opponent connected! Match ready.`;
+        document.getElementById('mp-question-text').innerText = '14 + 8 = ?';
+      }, 1500);
+    }
+    function connectToOpponent(target) {
+      if (!target) return;
+      document.getElementById('mp-status').innerText = `Connected to ${target.toUpperCase()}!`;
+      document.getElementById('mp-question-text').innerText = '14 + 8 = ?';
+    }
+    function submitMpAnswer() {
+      const val = Number(document.getElementById('mp-answer-input').value);
+      if (val === 22) {
+        MP.localScore++;
+        addStars(4);
+        updateMpScoreboard();
+        triggerConfetti(false);
+        speakText('Correct point!');
+        document.getElementById('mp-question-text').innerText = '9 × 6 = ?';
+        document.getElementById('mp-answer-input').value = '';
+      }
+    }
+
+    // REDEEM CODE SYSTEM (Requirement 3)
+    const REDEEM_CODES = {
+      'STEALTH2026': { xp: 500, title: 'Stealth Coder' },
+      'MATHKING':    { xp: 1000, avatar: 'Cyber King' },
+      'STREAKBOOST': { streakMultiplier: 2.0 },
+      'GEMBOOST':    { gems: 100 },
+      'RAFTSTUDIOS': { xp: 1000, gems: 200, title: 'Raft Dev' },
+      'STREAKMAX':   { streakMultiplier: 2.5 }
+    };
+
+    function handleRedeemCode() {
+      const input = document.getElementById('redeemInput');
+      const code = input.value.toUpperCase().trim();
+      const status = document.getElementById('redeemStatus');
+
+      if (!code) {
+        status.innerHTML = `<span class="bg-white/20 px-2 py-1 rounded text-xs">Please type a code first!</span>`;
+        return;
+      }
+      if (state.redeemedCodes.includes(code)) {
+        status.innerHTML = `<span class="bg-yellow-400 text-slate-900 px-2 py-1 rounded text-xs font-bold">You already redeemed this code!</span>`;
+        return;
+      }
+      const reward = REDEEM_CODES[code];
+      if (!reward) {
+        status.innerHTML = `<span class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">Invalid or expired code.</span>`;
+        return;
+      }
+
+      const parts = [];
+      if (reward.xp) {
+        const gained = Math.round(reward.xp * state.streakMultiplier);
+        state.xp += gained;
+        parts.push(`+${gained} XP`);
+      }
+      if (reward.gems) {
+        state.gems += reward.gems;
+        parts.push(`+${reward.gems} Gems`);
+      }
+      if (reward.title && !state.unlockedTitles.includes(reward.title)) {
+        state.unlockedTitles.push(reward.title);
+        parts.push(`"${reward.title}"`);
+      }
+      if (reward.streakMultiplier) {
+        state.streakMultiplier = reward.streakMultiplier;
+        parts.push(`${reward.streakMultiplier}x XP Boost`);
+      }
+
+      state.redeemedCodes.push(code);
+      saveState();
+      updateRedeemDisplay();
+      updateHeaderAndRanks();
+
+      status.innerHTML = `<span class="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">Success: ${parts.join(', ')}</span>`;
+      showToast('Reward Claimed! 🎁', parts.join(', '));
+      triggerConfetti(true);
+      input.value = '';
+    }
+
+    function updateRedeemDisplay() {
+      const hXp = document.getElementById('header-xp');
+      if (hXp) hXp.innerText = state.xp;
+      const hGems = document.getElementById('header-gems');
+      if (hGems) hGems.innerText = state.gems;
+      const cXp = document.getElementById('redeem-xp-counter');
+      if (cXp) cXp.innerText = `✨ ${state.xp} XP (${state.streakMultiplier}x)`;
+      const mXp = document.getElementById('modal-xp-total');
+      if (mXp) mXp.innerText = state.xp;
+      const mGems = document.getElementById('modal-gems-total');
+      if (mGems) mGems.innerText = state.gems;
+
+      const badges = state.unlockedTitles.map(t => `<span class="bg-white/30 px-2 py-0.5 rounded">🏷️ ${t}</span>`).join('');
+      const cardList = document.getElementById('redeem-unlocks-list');
+      if (cardList) cardList.innerHTML = badges;
+      const modalList = document.getElementById('modal-unlocks-list');
+      if (modalList) modalList.innerHTML = badges;
+    }
+
+    // SHOP MARKETPLACE
+    let marketplaceFilter = 'all';
+    function switchMarketplaceTab(cat) {
+      marketplaceFilter = cat;
+      document.querySelectorAll('.mp-tab-btn').forEach(b => {
+        b.className = b.dataset.cat === cat ? 'mp-tab-btn block-btn bg-indigo-600 text-white border-indigo-800 font-bold px-4 py-2 rounded-xl text-sm' : 'mp-tab-btn block-btn bg-white text-slate-700 border-slate-300 font-bold px-4 py-2 rounded-xl text-sm';
+      });
+      renderMarketplace();
+    }
+
+    function renderMarketplace() {
+      const bal = document.getElementById('shop-star-balance');
+      if (bal) bal.innerText = `${state.starsEarned} Stars`;
+      const catalog = [
+        ...SHOP_MASCOTS.map(m => ({ ...m, category: 'mascot' })),
+        ...SKINS.map(s => ({ ...s, category: 'skin' })),
+        ...ACCESSORIES.map(a => ({ ...a, category: 'accessory' })),
+        ...THEMES.map(t => ({ ...t, category: 'theme' })),
+        ...SHOP_FX.map(f => ({ ...f, category: 'fx' }))
+      ];
+      const filtered = marketplaceFilter === 'all' ? catalog : catalog.filter(i => i.category === marketplaceFilter);
+      const grid = document.getElementById('marketplace-grid');
+      if (!grid) return;
+
+      grid.innerHTML = filtered.map(item => {
+        const owned = state.inventory.includes(item.id);
+        const equipped =
+          (item.category === 'mascot' && state.activeMascot === item.id) ||
+          (item.category === 'skin' && state.activeSkin === item.id) ||
+          (item.category === 'accessory' && state.activeAccessory === item.id) ||
+          (item.category === 'theme' && state.activeTheme === item.id) ||
+          (item.category === 'fx' && state.activeFX === item.id);
+        let btn = '';
+        if (owned) {
+          btn = equipped ? `<button disabled class="w-full bg-emerald-600 text-white font-bold py-1.5 rounded-lg text-xs">Equipped ✔️</button>` : `<button onclick="equipShopItem('${item.id}', '${item.category}')" class="w-full block-btn bg-indigo-500 text-white border-indigo-700 font-bold py-1.5 rounded-lg text-xs">Equip</button>`;
+        } else if (state.starsEarned >= item.price) {
+          btn = `<button onclick="buyShopItem('${item.id}', ${item.price}, '${item.category}')" class="w-full block-btn bg-amber-500 text-white border-amber-700 font-bold py-1.5 rounded-lg text-xs">Buy ${item.price} ⭐</button>`;
+        } else {
+          btn = `<button disabled class="w-full bg-slate-300 text-slate-500 font-bold py-1.5 rounded-lg text-xs">Need ${item.price} ⭐</button>`;
+        }
+        return `
+          <div class="bg-white border-2 border-indigo-200 rounded-2xl p-3 text-center space-y-2 shadow-sm">
+            <div class="text-3xl">${item.icon || '🎨'}</div>
+            <h4 class="font-fredoka text-sm text-slate-800">${item.name}</h4>
+            <span class="text-[10px] uppercase font-bold text-indigo-400">${item.category}</span>
+            ${btn}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buyShopItem(id, price, cat) {
+      if (state.starsEarned < price) return;
+      state.starsEarned -= price;
+      state.inventory.push(id);
+      equipShopItem(id, cat);
+      triggerConfetti(true);
+      showToast('Unlocked! 🎉', 'Item added to your collection!');
+      saveState();
+      updateHeaderAndRanks();
+      renderMarketplace();
+    }
+
+    function equipShopItem(id, cat) {
+      if (!state.inventory.includes(id)) return;
+      if (cat === 'mascot') selectMascot(id);
+      else if (cat === 'skin') selectSkin(id);
+      else if (cat === 'accessory') selectAccessory(id);
+      else if (cat === 'theme') applyTheme(id);
+      else if (cat === 'fx') {
+        state.activeFX = id;
+        saveState();
+      }
+      saveState();
+      renderMarketplace();
+    }
+
+    // DAILY CHALLENGE & UTILITIES
+    function claimDailyChallenge() {
+      if (state.dailyClaimed) { showToast('Already Claimed', 'Come back tomorrow!', '⚠️'); return; }
+      state.dailyClaimed = true;
+      localStorage.setItem('mathmeet_daily_claimed', new Date().toDateString());
+      addStars(5);
+      showToast('Daily Claimed! ⭐', '+5 Stars added!');
+      const btn = document.getElementById('daily-claim-btn');
+      if (btn) { btn.classList.add('opacity-50', 'cursor-not-allowed'); btn.innerText = 'Claimed ✔️'; }
+    }
+
+    function startBossRound() {
+      showToast('Boss Round!', 'Rapid fire mixed challenge!', '🔥');
+      startPuzzle('p89_3');
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = state.ttsRate;
+        window.speechSynthesis.speak(u);
+      }
+    }
+    function speakMascotSpeech() { speakText(document.getElementById('mascot-speech').innerText); }
+    function changeTTSRate(delta) {
+      state.ttsRate = Math.min(1.4, Math.max(0.7, parseFloat((state.ttsRate + delta).toFixed(1))));
+      document.getElementById('tts-rate-label').innerText = `${state.ttsRate}x`;
+    }
+
+    function triggerConfetti(big = false) {
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: big ? 120 : 50, spread: big ? 90 : 50, origin: { y: 0.6 } });
+      }
+    }
+
+    function showToast(title, msg, icon = "🏆") {
+      const toast = document.getElementById('toast-popup');
+      document.getElementById('toast-icon').innerText = icon;
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-msg').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (!m) return;
+      m.classList.remove('hidden');
+      if (id === 'parent-summary-modal') {
+        document.getElementById('parent-total-stars').innerText = state.starsEarned;
+        document.getElementById('parent-completed-count').innerText = state.completedPuzzles;
+        document.getElementById('parent-rank-text').innerText = getRankFromStars(state.starsEarned).name;
+        document.getElementById('parent-streak-text').innerText = `${state.streak} Day(s)`;
+        const acc = state.totalAttempts > 0 ? Math.round((state.correctAttempts / state.totalAttempts) * 100) : 100;
+        document.getElementById('parent-accuracy-text').innerText = `${acc}%`;
+      }
+    }
+    function closeModal(id) { const m = document.getElementById(id); if (m) m.classList.add('hidden'); }
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toDateString();
+      if (state.lastLogin !== today) {
+        state.streak += 1;
+        state.lastLogin = today;
+        saveState();
+      }
+      applyTheme(state.theme);
+      renderMascotSVG();
+      renderMascotModalGrid();
+      renderThemesGrid();
+      updateHeaderAndRanks();
+      switchMainTab(state.pagemode || 'hub');
+      if (state.dailyClaimed) {
+        const btn = document.getElementById('daily-claim-btn');
+        if (btn) { btn.classList.add('opacity-50', 'cursor-not-allowed'); btn.innerText = 'Claimed ✔️'; }
+      }
+    });
+  </script>
+</body>
+</html>
